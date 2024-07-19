@@ -1,0 +1,562 @@
+{
+  "location": {
+    "latitude": 52.375,
+    "longitude": 13.125
+  },
+  "soil": {
+    "topsoil-texture": "sandy loam 3",
+    "subsoil-texture": "sandy loam 3"
+  },
+  "herd": {
+    "is-dual-purpose": false,
+    "mature-bodyweight": 650,
+    "age-first-calving": 24,
+    "weight-first-calving": 85,
+    "milk-fat": 4.2,
+    "milk-protein": 3.4,
+    "milk-yield-data": "1;17.3\n2;27.65\n3;28.14\n4;27.69\n5;30.35\n6;29\n7;28.07\n8;28.16\n9;27.2\n10;26.21\n11;26.03\n12;25.6\n13;25.49\n14;24.31\n15;24.31\n16;24.54\n17;24.29\n18;24.42\n19;24.24\n20;24.84\n21;23.43\n22;22.86\n23;22.1\n24;22.4\n25;21.49\n26;20.43\n27;19.7\n28;18.03\n29;18.49\n30;18.2\n31;15.84\n32;13.49\n33;12.67\n34;12.68\n35;13.45\n36;12.89\n37;13.4\n38;14.37\n39;13.7\n40;12.19\n41;11.13\n42;10.47\n  ",
+    "milk-yield": "8500",
+    "calving-interval": 13,
+    "young-stock-cull-rate": 15,
+    "no-groups": 2,
+    "herd-size": 30,
+    "replacement-rate": 30,
+    "dry-periode": 8
+  },
+  "feed": {
+    "eval-system": "de",
+    "straw-max": 1,
+    "straw-type": "wheat",
+    "concentrate-share": 30,
+    "rnb-ub": "Infinity",
+    "rnb-lb": "-Infinity",
+    "feed-53-name": "Barley, grain",
+    "feed-53-amount": 1,
+    "feed-53-dm": 880,
+    "feed-53-om": 973,
+    "feed-53-omd": 85,
+    "feed-53-cp": 124,
+    "feed-53-cpd": 74,
+    "feed-53-ee": 27,
+    "feed-53-eed": 77,
+    "feed-53-cf": 57,
+    "feed-53-cfd": 32,
+    "feed-53-nfe": 765,
+    "feed-53-nfed": 92,
+    "feed-54-name": "Faba beans, grain",
+    "feed-54-amount": 0,
+    "feed-54-dm": 880,
+    "feed-54-om": 961,
+    "feed-54-omd": 91,
+    "feed-54-cp": 298,
+    "feed-54-cpd": 86,
+    "feed-54-ee": 16,
+    "feed-54-eed": 75,
+    "feed-54-cf": 89,
+    "feed-54-cfd": 86,
+    "feed-54-nfe": 558,
+    "feed-54-nfed": 94,
+    "feed-55-name": "Maize, grain",
+    "feed-55-amount": 0,
+    "feed-55-dm": 880,
+    "feed-55-om": 983,
+    "feed-55-omd": 86,
+    "feed-55-cp": 106,
+    "feed-55-cpd": 66,
+    "feed-55-ee": 45,
+    "feed-55-eed": 83,
+    "feed-55-cf": 26,
+    "feed-55-cfd": 46,
+    "feed-55-nfe": 806,
+    "feed-55-nfed": 90,
+    "feed-57-name": "Peas, grain",
+    "feed-57-amount": 1,
+    "feed-57-dm": 880,
+    "feed-57-om": 966,
+    "feed-57-omd": 90,
+    "feed-57-cp": 251,
+    "feed-57-cpd": 82,
+    "feed-57-ee": 15,
+    "feed-57-eed": 62,
+    "feed-57-cf": 67,
+    "feed-57-cfd": 78,
+    "feed-57-nfe": 633,
+    "feed-57-nfed": 95,
+    "feed-64-name": "Rapeseed, expeller",
+    "feed-64-amount": 0,
+    "feed-64-dm": 890,
+    "feed-64-om": 923,
+    "feed-64-omd": 80,
+    "feed-64-cp": 399,
+    "feed-64-cpd": 84,
+    "feed-64-ee": 25,
+    "feed-64-eed": 78,
+    "feed-64-cf": 131,
+    "feed-64-cfd": 50,
+    "feed-64-nfe": 368,
+    "feed-64-nfed": 86,
+    "feed-66-name": "Soybean meal, partly dehulled, heat treated",
+    "feed-66-amount": 0,
+    "feed-66-dm": 890,
+    "feed-66-om": 933,
+    "feed-66-omd": 92,
+    "feed-66-cp": 548,
+    "feed-66-cpd": 92,
+    "feed-66-ee": 13,
+    "feed-66-eed": 68,
+    "feed-66-cf": 39,
+    "feed-66-cfd": 85,
+    "feed-66-nfe": 333,
+    "feed-66-nfed": 93,
+    "feed-68-name": "Sunflower cake, partly dehulled, 4-8% ether extracts",
+    "feed-68-amount": 0,
+    "feed-68-dm": 910,
+    "feed-68-om": 934,
+    "feed-68-omd": 65,
+    "feed-68-cp": 390,
+    "feed-68-cpd": 85,
+    "feed-68-ee": 62,
+    "feed-68-eed": 85,
+    "feed-68-cf": 206,
+    "feed-68-cfd": 27,
+    "feed-68-nfe": 276,
+    "feed-68-nfed": 70,
+    "feed-59-name": "Triticale, grain",
+    "feed-59-amount": 0,
+    "feed-59-dm": 880,
+    "feed-59-om": 978,
+    "feed-59-omd": 89,
+    "feed-59-cp": 145,
+    "feed-59-cpd": 71,
+    "feed-59-ee": 18,
+    "feed-59-eed": 65,
+    "feed-59-cf": 28,
+    "feed-59-cfd": 32,
+    "feed-59-nfe": 787,
+    "feed-59-nfed": 93,
+    "feed-60-name": "Wheat, grain",
+    "feed-60-amount": 0,
+    "feed-60-dm": 880,
+    "feed-60-om": 981,
+    "feed-60-omd": 89,
+    "feed-60-cp": 138,
+    "feed-60-cpd": 78,
+    "feed-60-ee": 20,
+    "feed-60-eed": 78,
+    "feed-60-cf": 29,
+    "feed-60-cfd": 41,
+    "feed-60-nfe": 794,
+    "feed-60-nfed": 93,
+    "feed-61-name": "Brewer's grains, silage",
+    "feed-61-amount": 0,
+    "feed-61-dm": 260,
+    "feed-61-om": 952,
+    "feed-61-omd": 68,
+    "feed-61-cp": 249,
+    "feed-61-cpd": 82,
+    "feed-61-ee": 86,
+    "feed-61-eed": 92,
+    "feed-61-cf": 193,
+    "feed-61-cfd": 54,
+    "feed-61-nfe": 424,
+    "feed-61-nfed": 60,
+    "feed-62-name": "Lucerne, dehydrated meal, immature",
+    "feed-62-amount": 0,
+    "feed-62-dm": 900,
+    "feed-62-om": 882,
+    "feed-62-omd": 70,
+    "feed-62-cp": 218,
+    "feed-62-cpd": 77,
+    "feed-62-ee": 35,
+    "feed-62-eed": 41,
+    "feed-62-cf": 222,
+    "feed-62-cfd": 54,
+    "feed-62-nfe": 407,
+    "feed-62-nfed": 76,
+    "feed-56-name": "Oats, grain",
+    "feed-56-amount": 0,
+    "feed-56-dm": 880,
+    "feed-56-om": 967,
+    "feed-56-omd": 74,
+    "feed-56-cp": 121,
+    "feed-56-cpd": 74,
+    "feed-56-ee": 53,
+    "feed-56-eed": 88,
+    "feed-56-cf": 116,
+    "feed-56-cfd": 29,
+    "feed-56-nfe": 677,
+    "feed-56-nfed": 80,
+    "feed-63-name": "Rapeseed, cake 15% ether extracts",
+    "feed-63-amount": 0,
+    "feed-63-dm": 900,
+    "feed-63-om": 931,
+    "feed-63-omd": 80,
+    "feed-63-cp": 350,
+    "feed-63-cpd": 86,
+    "feed-63-ee": 155,
+    "feed-63-eed": 90,
+    "feed-63-cf": 111,
+    "feed-63-cfd": 41,
+    "feed-63-nfe": 315,
+    "feed-63-nfed": 84,
+    "feed-58-name": "Rye, grain",
+    "feed-58-amount": 0,
+    "feed-58-dm": 880,
+    "feed-58-om": 979,
+    "feed-58-omd": 90,
+    "feed-58-cp": 112,
+    "feed-58-cpd": 69,
+    "feed-58-ee": 18,
+    "feed-58-eed": 58,
+    "feed-58-cf": 27,
+    "feed-58-cfd": 47,
+    "feed-58-nfe": 822,
+    "feed-58-nfed": 94,
+    "feed-65-name": "Soybean seeds, heat treated",
+    "feed-65-amount": 0,
+    "feed-65-dm": 935,
+    "feed-65-om": 946,
+    "feed-65-omd": 86,
+    "feed-65-cp": 398,
+    "feed-65-cpd": 90,
+    "feed-65-ee": 203,
+    "feed-65-eed": 91,
+    "feed-65-cf": 62,
+    "feed-65-cfd": 69,
+    "feed-65-nfe": 283,
+    "feed-65-nfed": 80,
+    "feed-67-name": "Sunflower seed meal, partly dehulled",
+    "feed-67-amount": 0,
+    "feed-67-dm": 900,
+    "feed-67-om": 930,
+    "feed-67-omd": 65,
+    "feed-67-cp": 379,
+    "feed-67-cpd": 85,
+    "feed-67-ee": 24,
+    "feed-67-eed": 85,
+    "feed-67-cf": 223,
+    "feed-67-cfd": 27,
+    "feed-67-nfe": 304,
+    "feed-67-nfed": 70,
+    "feed-69-name": "Wheat, bran",
+    "feed-69-amount": 0,
+    "feed-69-dm": 880,
+    "feed-69-om": 935,
+    "feed-69-omd": 67,
+    "feed-69-cp": 160,
+    "feed-69-cpd": 76,
+    "feed-69-ee": 43,
+    "feed-69-eed": 59,
+    "feed-69-cf": 134,
+    "feed-69-cfd": 33,
+    "feed-69-nfe": 598,
+    "feed-69-nfed": 73,
+    "feed-500-name": "Custom concentrate",
+    "feed-500-amount": 0,
+    "feed-500-dm": 880,
+    "feed-500-om": 981,
+    "feed-500-omd": 89,
+    "feed-500-cp": 138,
+    "feed-500-cpd": 78,
+    "feed-500-ee": 20,
+    "feed-500-eed": 78,
+    "feed-500-cf": 29,
+    "feed-500-cfd": 41,
+    "feed-500-nfe": 794,
+    "feed-500-nfed": 93
+  },
+  "crop": {
+    "wheat-emergence-to-double-ridge": 284,
+    "wheat-double-ridge-to-flowering": 380,
+    "wheat-flowering-to-begin-grain-filling": 200,
+    "wheat-grain-filling": 420,
+    "barley-emergence-to-double-ridge": 284,
+    "barley-double-ridge-to-flowering": 300,
+    "barley-flowering-to-begin-grain-filling": 120,
+    "barley-grain-filling": 260,
+    "rye-emergence-to-double-ridge": 284,
+    "rye-double-ridge-to-flowering": 200,
+    "rye-flowering-to-begin-grain-filling": 400,
+    "rye-grain-filling": 350,
+    "oats-emergence-to-double-ridge": 300,
+    "oats-double-ridge-to-flowering": 420,
+    "oats-flowering-to-begin-grain-filling": 200,
+    "oats-grain-filling": 200,
+    "maize-emergence-to-shooting": 284,
+    "maize-shooting-to-tasseling": 190,
+    "maize-tasseling-to-flowering": 200,
+    "maize-flowering-to-corn-filling": 200,
+    "maize-corn-filling": 400,
+    "grass-flowering": 500,
+    "arable-area": 100
+  },
+  "rotation": [
+    [
+      {
+        "crop": {
+          "name": "wheat",
+          "isPerennial": false,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": 80,
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "No",
+                "Yes"
+              ]
+            }
+          },
+          "area": 1
+        },
+        "id": 1451110708669,
+        "to": [
+          1451110708685,
+          1451110708691
+        ]
+      }
+    ],
+    [
+      {
+        "crop": {
+          "name": "rye",
+          "isPerennial": false,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": 80,
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "No",
+                "Yes"
+              ]
+            }
+          },
+          "area": 0.5
+        },
+        "id": 1451110708685,
+        "to": [
+          1451110708696
+        ]
+      },
+      {
+        "crop": {
+          "name": "barley",
+          "isPerennial": false,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": 80,
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "No",
+                "Yes"
+              ]
+            }
+          },
+          "area": 0.5
+        },
+        "id": 1451110708691,
+        "to": [
+          1451110743180
+        ]
+      }
+    ],
+    [
+      {
+        "crop": {
+          "name": "grass-legume",
+          "isPerennial": true,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": "180",
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "No",
+                "Yes"
+              ]
+            },
+            "legume-share": {
+              "name": "Legume share",
+              "unit": "%",
+              "help": "Initial legume share of total DM",
+              "min": 0,
+              "max": 100,
+              "value": "10"
+            }
+          },
+          "area": 0.5
+        },
+        "id": 1451110708696,
+        "to": [
+          1451110708706
+        ]
+      },
+      {
+        "crop": {
+          "name": "grass-legume",
+          "isPerennial": true,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": "80",
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "Yes",
+                "No"
+              ]
+            },
+            "legume-share": {
+              "name": "Legume share",
+              "unit": "%",
+              "help": "Initial legume share of total DM",
+              "min": 0,
+              "max": 100,
+              "value": "20"
+            }
+          },
+          "area": 0.5
+        },
+        "id": 1451110743180,
+        "to": [
+          1451110745060
+        ]
+      }
+    ],
+    [
+      {
+        "crop": {
+          "name": "grass-legume",
+          "isPerennial": true,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": 80,
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "No",
+                "Yes"
+              ]
+            },
+            "legume-share": {
+              "name": "Legume share",
+              "unit": "%",
+              "help": "Initial legume share of total DM",
+              "min": 0,
+              "max": 100,
+              "value": 20
+            }
+          },
+          "area": 0.5
+        },
+        "id": 1451110708706,
+        "to": [
+          1451110708669
+        ]
+      },
+      {
+        "crop": {
+          "name": "grass-legume",
+          "isPerennial": true,
+          "parameter": {
+            "N-input": {
+              "name": "Nitrogen input",
+              "unit": "kg N / ha",
+              "help": "Average mineral or organic nitrogen fertilization",
+              "value": 80,
+              "min": 0,
+              "max": 200
+            },
+            "irrigation": {
+              "name": "Irrrigated",
+              "unit": "-",
+              "help": "Apply automatic irrigation",
+              "value": [
+                "No",
+                "Yes"
+              ]
+            },
+            "legume-share": {
+              "name": "Legume share",
+              "unit": "%",
+              "help": "Initial legume share of total DM",
+              "min": 0,
+              "max": 100,
+              "value": 20
+            }
+          },
+          "area": 0.5
+        },
+        "id": 1451110745060,
+        "to": [
+          1451110708669
+        ]
+      }
+    ]
+  ],
+  "grassland": {
+    "grassland-area": 100,
+    "grassland-legume-share": 20,
+    "cut-threshhold": 1500,
+    "hay-share": 10,
+    "grassland-N-input": 80,
+    "pasture-share": 25,
+    "time-at-pasture": 4,
+    "grazing-start": 4,
+    "grazing-end": 10
+  },
+  "fertilizer": {},
+  "simulation": {
+    "start-year": "2004",
+    "time-step": "monthly"
+  }
+}

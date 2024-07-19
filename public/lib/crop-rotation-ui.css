@@ -1,0 +1,275 @@
+.crop-rotation * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.crop-rotation>#well {
+    position: relative;
+    width: 100%;
+    overflow: auto;
+    padding: 5px;
+    border: 2px solid;
+    border-color: #429aff;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    background-color: rgb(245, 245, 245);
+}
+
+.crop-rotation>#main {
+    width: 100%;
+    height: 300px;
+    padding: 0px;
+    border: 2px solid;
+    border-top-width: 0px;
+    border-color: #429aff;
+    background-color: rgb(245, 245, 245);
+    position: relative;
+    overflow: scroll;
+    white-space: nowrap;
+}
+
+.crop-rotation>#edit {
+    width: 100%;
+    min-height: 200px;
+    padding: 5px;
+    border: 2px solid;
+    border-top-width: 0px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    color: #333;
+    border-color: #429aff;
+    background-color: rgb(245, 245, 245);
+}
+
+.crop-rotation svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.crop-rotation svg .connector {
+    stroke: #aaa;
+    stroke-width: 1px;
+    fill: transparent;
+}
+
+.crop-rotation svg .connector.dot {
+    stroke-dasharray: 3 3;
+}
+
+.crop-rotation svg #preview-connection {
+    stroke: #aaa;
+    stroke-width: 2px;
+    fill: transparent;
+}
+
+.crop-rotation svg .line-light {
+    stroke: #ccc;
+    stroke-width: 1px;
+    fill: transparent;
+}
+
+.crop-rotation #crop .parameter {
+    float: left;
+}
+
+.crop-rotation #crop .parameter>label {
+    min-width: 120px;
+    max-width: 120px;
+    display: block;
+    /*margin-left: 10px;*/
+}
+
+.crop-rotation .item {
+    width: 80px;
+    height: 90px;
+    position: absolute;
+    z-index: 1;
+    border: 0px solid;
+    border-radius: 5px;
+    font-size: 80%;
+    color: #333;
+    ;
+    background-color: transparent;
+}
+
+.crop-rotation .item .item-area {
+    width: 50px;
+    top: calc(50% - 6px);
+    left: 15px;
+    right: 15px;
+    text-align: center;
+    position: absolute;
+    z-index: 1;
+    border: 0px solid;
+    font-size: 100%;
+    color: #333;
+    background-color: transparent;
+}
+
+.crop-rotation .item.locked .item-body {
+    cursor: not-allowed;
+    background: repeating-linear-gradient( 45deg, #eee, #eee 5px, #ccc 5px, #ccc 10px);
+}
+
+.crop-rotation .item.is-clone .item-body {
+    cursor: not-allowed;
+    background: repeating-linear-gradient( 45deg, #eee, #eee 5px, #ccc 5px, #ccc 10px);
+}
+
+.crop-rotation .item.active .item-body {
+    background-color: #ccc;
+    border-color: #429aff;
+}
+
+.crop-rotation .item-header {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    height: 20px;
+    cursor: move;
+    background-color: grey;
+}
+
+.crop-rotation .item-body {
+    height: 70px;
+    position: relative;
+    border: 2px solid;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-color: #429aff;
+    background-color: #eee;
+    cursor: pointer;
+}
+
+.crop-rotation .item-body-left {
+    /*  border-top-width: 1px;
+  border-top-style: solid;*/
+    width: 30px;
+    height: 70px;
+    float: left;
+}
+
+.crop-rotation .item-body-right {
+    /*  border-left-width: 1px;
+  border-left-style: solid;
+  border-top-width: 1px;
+  border-top-style: solid;*/
+    height: 70px;
+    overflow: hidden;
+    position: relative;
+}
+
+.crop-rotation .item-drop {
+    width: 10px !important;
+    height: 10px !important;
+    position: absolute;
+    left: 2px;
+    top: calc(50% - 5px);
+    border-radius: 10px;
+    background-color: rgb(153, 153, 153);
+    cursor: auto;
+}
+
+.crop-rotation .item-drag {
+    width: 10px !important;
+    height: 10px !important;
+    position: absolute;
+    top: calc(50% - 5px);
+    left: calc(100% - 12px);
+    border-radius: 10px;
+    cursor: crosshair;
+    background-color: rgb(153, 153, 153);
+}
+
+.crop-rotation .item-header>span.ui-icon {
+    position: absolute;
+    top: -2px;
+    left: calc(100% - 14px);
+    display: inline-block !important;
+    vertical-align: middle !important;
+    cursor: pointer;
+}
+
+.crop-rotation .well-item>.item-header>span.ui-icon {
+    display: none !important;
+}
+
+.crop-rotation span.item-label {
+    color: black;
+    word-wrap: break-word;
+    white-space: normal;
+    width: 100%;
+    margin: 2px;
+}
+
+.crop-rotation span.item-drag-area {
+    position: absolute;
+    top: calc(50% - 5px);
+    margin-left: 2px;
+    display: none;
+}
+
+.crop-rotation .well-item {
+    float: left;
+    cursor: move;
+    z-index: 3;
+    width: 60px;
+    height: 60px;
+    margin: 3px;
+}
+
+.crop-rotation .well-item>.item-header {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.crop-rotation .crop-container {
+    background-color: transparent;
+    position: relative;
+    float: left;
+    border: 0px;
+    display: inline;
+    padding: 2px;
+}
+
+.crop-rotation .item-ha {
+    color: red;
+}
+
+.crop-rotation .item.no-precrop .item-drop,
+.crop-rotation .item.no-successor .item-drag {
+    background-color: red;
+}
+
+.crop-rotation .item .item-drop.over-allowed {
+    background-color: green;
+}
+
+.crop-rotation .item .item-drag.over-allowed {
+    background-color: green;
+}
+
+.crop-rotation .item-drop.over-not-allowed {
+    background-color: red;
+}
+
+.crop-rotation .item-drag.over-not-allowed {
+    background-color: red;
+}
+
+.well-item.well-item-helper.not-droppable .item-header {
+    background: repeating-linear-gradient( 45deg, #eee, #eee 5px, transparent 5px, transparent 10px);
+}
+
+.crop-rotation svg #preview-connection.over-allowed {
+    stroke: green;
+}
+
+.crop-rotation svg #preview-connection.over-not-allowed {
+    stroke: red;
+}
