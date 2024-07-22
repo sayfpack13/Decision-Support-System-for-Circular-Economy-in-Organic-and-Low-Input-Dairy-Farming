@@ -26,14 +26,13 @@ Before running the simulation, follow these steps:
 6. **View Results and Adjust Parameters**
    - Analyze the results, adjust simulation parameters if needed, and run the simulation again to refine outcomes.
 
-For additional help and background information, please refer to our [Wiki pages](#).
 
 ## How It Works
 
 ### Step 1: Gathering Data
 
 **Environmental Data:**
-- **Climate Data:** Temperature, Precipitation, Daylength, Radiation
+- **Climate Data:** Temperature, Humidity, Precipitation, Daylength, Radiation
 - **Soil Quality Data:** Topsoil and subsoil texture (e.g., sandy loam, clay loam) relevant to water retention and nutrient availability for forage crops.
 
 **Farm Data:**
@@ -42,10 +41,44 @@ For additional help and background information, please refer to our [Wiki pages]
 - **Crop & Forage Production:** Arable & permanent grassland area, legume share in permanent grassland, grass cutting threshold & hay share, yearly nitrogen input on permanent grassland, crop rotation plan.
 
 ### Step 2: Data Modeling
+[Download "DSS simulation input data example.xlsx"](https://docs.google.com/spreadsheets/d/1GGAgBEdtJUZDVZxy8Yvl_wksV2Yx1_31/edit?usp=sharing&ouid=117590588496306833108&rtpof=true&sd=true)
 
-- **Forage Growth Model:** Estimates forage yield over time using weather data, soil properties, and crop rotation plans.
-- **Herd Nutritional Needs Model:** Calculates the feed required by the dairy herd based on breed, weight, milk production, and physiological stage.
-- **Feed Ration Optimization Model (Optional):** Analyzes real-time data on feed prices and animal performance for cost-effective ration adjustments (future application).
+[Download "DSS Simulation Parameters.xlsx"](https://docs.google.com/spreadsheets/d/11xDL4vAugby7FB6GDOCe2ufpFYg4nslk/edit?usp=sharing&ouid=117590588496306833108&rtpof=true&sd=true)
+
+- **Forage Growth Model:**
+   - **Purpose:** Estimates forage yield over time using weather data, soil properties, and crop rotation plans.
+   - **Parameters:**
+      - **Weather Data:** Temperature, Precipitation, Radiation, Daylength.
+      - **Soil Properties:** Soil type (e.g., sandy loam, clay loam), water retention capacity, nutrient content.
+      - **Crop Rotation Plans:** Types of crops, planting and harvesting dates, rotation cycles.
+   - **Process:** Simulates daily growth based on environmental conditions and management practices.
+   - **Implementation:**
+      - **public\js\pasture-worker.min.js** Handles the simulation of forage growth on grassland and pasture areas.
+      - **public\js\arable-worker.min.js** Manages the simulation of forage and crop growth on arable land.
+      - **public\js\grassland-worker.min.js** Manages the simulation of forage growth specifically on grassland areas.
+      - **public\lib\weather.solar.js** Calculates solar radiation and daylength based on latitude and temperature. Essential for accurate modeling of forage growth dependent on sunlight.
+      - **public\lib\simple_statistics.js** A simple, literate statistics system used for various statistical calculations such as linear regression, R-squared, Bayesian Classifier, harmonic mean, and geometric mean. This is used to support data analysis and model validation within the DSS.
+
+
+- **Herd Nutritional Needs Model:**
+   - **Purpose:** Calculates the feed required by the dairy herd based on breed, weight, milk production, and physiological stage.
+   - **Parameters:**
+      - **Breed Specifications:** Average weight, milk yield, calving interval.
+      - **Physiological Stage:** Growth, lactation, maintenance.
+      - **Nutrient Requirements:** Energy (ME), protein (CP), fiber (NDF), minerals.
+   - **Process:** Determines daily feed intake and nutritional needs based on herd parameters and production goals.
+   - **Implementation:** 
+      - **public\js\index.min.js** Contains the main simulation logic, integrating the forage growth models, herd nutritional needs model, and other necessary computations to provide a comprehensive analysis of the forage supply and demand balance.
+
+
+- **Feed Ration Optimization Model (Future scope):**
+   - **Purpose:** Analyzes real-time data on feed prices and animal performance for cost-effective ration adjustments (future application).
+   - **Parameters:**
+      - **Feed Prices:** Real-time data on market prices for various feedstuffs.
+      - **Animal Performance Data:** Milk yield, growth rates, health indicators.
+      - **Cost-Effectiveness:** Optimization algorithms to balance cost and nutritional adequacy.
+   - **Process:** Uses optimization algorithms to suggest cost-effective feeding strategies.
+   - **Implementation:** Future scope, planned as an enhancement to the current model.
 
 ### Step 3: Applying Models and Showing Results
 
@@ -53,9 +86,3 @@ For additional help and background information, please refer to our [Wiki pages]
 - **Analyze Feed Needs:** Calculate the feed requirements for the dairy herd.
 - **Identify Potential Shortages/Surpluses:** Compare predicted forage production with feed needs to highlight imbalances.
 - **Optimize Feeding Strategies:** Adjust ration composition, pasture management, and purchased feed to balance forage supply and demand. Present results visually with charts and graphs.
-
-### Step 4: System Development Requirements (Not Planned)
-
-- **Frontend (React.JS):** Retrieve results from the DSS models and present them visually (e.g., charts showing forage production vs. feed needs).
-- **Backend (Node.js/Express):** Develop a RESTful API to retrieve data from the database, apply DSS models, and send recommendations to the frontend.
-- **Database (MongoDB):** Store and manage farm data, historical simulations, and user settings.
