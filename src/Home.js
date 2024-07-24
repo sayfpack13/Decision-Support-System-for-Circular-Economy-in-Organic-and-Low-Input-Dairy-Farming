@@ -1,4 +1,17 @@
+import { useContext, useEffect } from "react"
+import { LoaderContext } from "./Loader"
+
 export default function Home() {
+    const { isLoading, setisLoading } = useContext(LoaderContext)
+    useEffect(() => {
+        if(!isLoading){
+            return
+        }
+        setTimeout(()=>{
+            setisLoading(false)
+        },500)
+    }, [isLoading,setisLoading])
+
     return (
         <div className='container'>
 

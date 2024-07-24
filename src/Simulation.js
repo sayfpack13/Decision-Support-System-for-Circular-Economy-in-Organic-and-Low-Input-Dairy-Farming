@@ -1,27 +1,11 @@
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { LoaderContext } from "./Loader";
 
 
 export default function Simulation() {
-
+    const { isLoading, setisLoading } = useContext(LoaderContext)
     const [isSimulated, setisSimulated] = useState(false)
-
-
-
-    useEffect(() => {
-        setTimeout(() => {
-            const hash = window.location.hash;
-
-            if (hash) {
-                const id = hash.substring(1);
-
-                const element = document.getElementById(id);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                }
-            }
-        }, 500)
-    }, [])
 
 
 
@@ -72,6 +56,9 @@ export default function Simulation() {
 
 
     useEffect(() => {
+        if(!isLoading){
+            return
+        }
         const scriptUrls = [
             "lib/jquery.min.js",
             "lib/jquery-ui.min.js",
@@ -96,16 +83,32 @@ export default function Simulation() {
             try {
                 for (const src of scriptUrls) {
                     await loadScript(src);
-                    console.log(`${src} loaded`);
                 }
+
+                
+
+                setTimeout(() => {
+                    const hash = window.location.hash;
+
+                    if (hash) {
+                        const id = hash.substring(1);
+
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                    setisLoading(false)
+                }, 500)
             } catch (error) {
-                console.error(error);
+                alert(error)
             }
         };
 
 
+
         loadScriptsSequentially();
-    }, []);
+    }, [isLoading,setisLoading]);
 
     const loadScript = (src) => {
         return new Promise((resolve, reject) => {
@@ -259,7 +262,7 @@ export default function Simulation() {
                     <br></br>
                     <label htmlFor='latitude'>Latitude</label>
                     <div className="input-group">
-                        <input id='latitude' className="form-control parameter-location" type="number" defaultValue="36"  />
+                        <input id='latitude' className="form-control parameter-location" type="number" defaultValue="36" />
                         <span className="input-group-addon">.00</span>
                     </div>
 
@@ -271,7 +274,7 @@ export default function Simulation() {
 
                     <label htmlFor='longitude'>Longitude</label>
                     <div className="input-group">
-                        <input id='longitude' className="form-control parameter-location" type="number" defaultValue="9"  />
+                        <input id='longitude' className="form-control parameter-location" type="number" defaultValue="9" />
                         <span className="input-group-addon">.00</span>
                     </div>
 
