@@ -18,6 +18,9 @@ export default function Header() {
                     <ul className="nav">
                         <li
                             onClick={() => {
+                                if (location.pathname === "/") {
+                                    return
+                                }
                                 setisLoading(true)
                                 navigate("/")
                             }}
@@ -27,6 +30,9 @@ export default function Header() {
                         </li>
                         <li
                             onClick={() => {
+                                if (location.pathname === "/simulation") {
+                                    return
+                                }
                                 setisLoading(true)
                                 navigate("/simulation")
                             }}

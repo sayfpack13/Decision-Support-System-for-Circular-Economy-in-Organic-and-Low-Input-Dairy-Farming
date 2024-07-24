@@ -56,9 +56,6 @@ export default function Simulation() {
 
 
     useEffect(() => {
-        if(!isLoading){
-            return
-        }
         const scriptUrls = [
             "lib/jquery.min.js",
             "lib/jquery-ui.min.js",
@@ -108,7 +105,7 @@ export default function Simulation() {
 
 
         loadScriptsSequentially();
-    }, [isLoading,setisLoading]);
+    }, []);
 
     const loadScript = (src) => {
         return new Promise((resolve, reject) => {
