@@ -4,7 +4,7 @@ import { LoaderContext } from "./Loader";
 
 
 export default function Simulation() {
-    const { isLoading, setisLoading } = useContext(LoaderContext)
+    const { setisLoading } = useContext(LoaderContext)
     const [isSimulated, setisSimulated] = useState(false)
 
 
@@ -105,7 +105,7 @@ export default function Simulation() {
 
 
         loadScriptsSequentially();
-    }, []);
+    }, [setisLoading]);
 
     const loadScript = (src) => {
         return new Promise((resolve, reject) => {
