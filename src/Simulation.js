@@ -1,12 +1,13 @@
 
 import { useContext, useEffect, useState } from "react";
 import { LoaderContext } from "./Loader";
+import { useNavigate } from "react-router-dom";
 
 
 export default function Simulation() {
     const { setisLoading } = useContext(LoaderContext)
     const [isSimulated, setisSimulated] = useState(false)
-
+    const navigate = useNavigate()
 
 
     const milkData = `
@@ -82,7 +83,7 @@ export default function Simulation() {
                     await loadScript(src);
                 }
 
-                
+
 
                 setTimeout(() => {
                     const hash = window.location.hash;
@@ -99,6 +100,7 @@ export default function Simulation() {
                 }, 500)
             } catch (error) {
                 alert(error)
+                navigate("/")
             }
         };
 

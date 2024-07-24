@@ -5,7 +5,7 @@ import { LoaderContext } from "./Loader";
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { setisLoading } = useContext(LoaderContext)
+    const { isLoading, setisLoading } = useContext(LoaderContext)
 
     return (
         <div className="header-container">
@@ -44,7 +44,7 @@ export default function Header() {
                 </nav>
             </div>
 
-            <nav id="navbar" className="navbar navbar-default" role="navigation" style={{ display: location.pathname !== "/simulation" ? "none" : "flex" }}>
+            <nav id="navbar" className="navbar navbar-default" role="navigation" style={{ display: location.pathname !== "/simulation" || isLoading ? "none" : "flex" }}>
                 <div className="navbar-header">
                     <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
                         <span className="sr-only">Toggle navigation</span>
