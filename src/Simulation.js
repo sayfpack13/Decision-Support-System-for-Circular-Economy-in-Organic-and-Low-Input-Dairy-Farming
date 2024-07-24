@@ -259,7 +259,7 @@ export default function Simulation() {
                     <br></br>
                     <label htmlFor='latitude'>Latitude</label>
                     <div className="input-group">
-                        <input id='latitude' className="form-control parameter-location" type="number" defaultValue="36" min="25.375" max="75.375" />
+                        <input id='latitude' className="form-control parameter-location" type="number" defaultValue="36"  />
                         <span className="input-group-addon">.00</span>
                     </div>
 
@@ -271,7 +271,7 @@ export default function Simulation() {
 
                     <label htmlFor='longitude'>Longitude</label>
                     <div className="input-group">
-                        <input id='longitude' className="form-control parameter-location" type="number" defaultValue="9" min="-40.375" max="75.375" />
+                        <input id='longitude' className="form-control parameter-location" type="number" defaultValue="9"  />
                         <span className="input-group-addon">.00</span>
                     </div>
 
