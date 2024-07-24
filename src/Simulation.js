@@ -952,7 +952,7 @@ export default function Simulation() {
                 <button onClick={() => {
                     setisSimulated(true)
                 }} className="run-simulation" id="run-btn">
-                    {isSimulated ? "Run Simulation Again" : "Run Simulation"} <img className='svg' src='img/run.svg' height='60' width='60'></img>
+                    {isSimulated ? "Run Simulation Again" : "Run Simulation"} <img alt="" className='svg' src='img/run.svg' height='60' width='60'></img>
                 </button>
 
 
@@ -1045,7 +1045,7 @@ export default function Simulation() {
                                     <h4 className='modal-title'>Error</h4>
                                 </div>
                                 <div className='modal-body'>
-                                    <p>An unexpected error occured. Please download your configuration file <a id='download-error' href="#">here</a> and send it to <a href="mailto:jbachinger@zalf.de?Subject=solid-dss" target="_top">jbachinger@zalf.de</a>. This will help
+                                    <p>An unexpected error occured. Please download your configuration file <a id='download-error' href="#error">here</a> and send it to <a href="mailto:jbachinger@zalf.de?Subject=solid-dss" target="_top">jbachinger@zalf.de</a>. This will help
                                         us to reproduce and hopefully fix the error.
                                     </p>
                                     <p>Please also copy information about the error and your browser into the email:</p>

@@ -13,27 +13,27 @@ export default function Home() {
             <ul>
                 <li>
                     Set your
-                    <a href="/simulation#location"><img className='svg' src='img/weather.svg' height='30' width='30'></img>location</a>
+                    <a href="/simulation#location"><img alt="" className='svg' src='img/weather.svg' height='30' width='30'></img>location</a>
                     and edit soil parameters.
                 </li>
                 <li>
                     Set the properties of your
-                    <a href="/simulation#herd"><img className='svg' src='img/cow.svg' height='30' width='30'></img>dairy</a> herd.
+                    <a href="/simulation#herd"><img alt="" className='svg' src='img/cow.svg' height='30' width='30'></img>dairy</a> herd.
                 </li>
                 <li>
                     Edit your rotations if you produce forage
-                    <a href="/simulation#crop"><img className='svg' src='img/crop.svg' height='30' width='30'></img>crops</a> on arable land.
+                    <a href="/simulation#crop"><img alt="" className='svg' src='img/crop.svg' height='30' width='30'></img>crops</a> on arable land.
                 </li>
                 <li>
                     Set
-                    <a href="/simulation#crop"><img className='svg' src='img/grass.svg' height='30' width='30'></img>grassland and pasture
+                    <a href="/simulation#crop"><img alt="" className='svg' src='img/grass.svg' height='30' width='30'></img>grassland and pasture
                     </a> availability.
                 </li>
                 <li>
                     Check your inputs
-                    <a href="/simulation#input-summary"><img className='svg' src='img/chart.svg' height='30' width='30'></img>here</a>
+                    <a href="/simulation#input-summary"><img alt="" className='svg' src='img/chart.svg' height='30' width='30'></img>here</a>
                     and finally
-                    <a id='run-link' href="/simulation#"><img className='svg' src='img/run.svg' height='30' width='30'></img>run</a> the simulation.
+                    <a id='run-link' href="/simulation#"><img alt="" className='svg' src='img/run.svg' height='30' width='30'></img>run</a> the simulation.
                 </li>
                 <li>
                     View results <a href="/simulation#output-summary">here</a>, adjust simulation parameters and run the simulation again if necessary.
