@@ -90,3 +90,8 @@
 .run-simulation{
     width: 100%;
 }
+
+
+.panel-title{
+    font-weight: bold;
+}
