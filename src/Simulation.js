@@ -6,11 +6,24 @@ export default function Simulation() {
 
     const [isSimulated, setisSimulated] = useState(false)
 
+
+
     useEffect(() => {
-        if (isSimulated) {
-            document.querySelector(".results").hidden = false;
-        }
-    }, [isSimulated])
+        setTimeout(() => {
+            const hash = window.location.hash;
+
+            if (hash) {
+                const id = hash.substring(1);
+
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }, 500)
+    }, [])
+
+
 
     const milkData = `
     1;17.3
@@ -106,72 +119,7 @@ export default function Simulation() {
     };
 
     return (
-        <>
-
-
-
-            <nav id="navbar" className="navbar navbar-default" role="navigation">
-                <div className="navbar-header">
-                    <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
-                        <span className="sr-only">Toggle navigation</span>
-                        <span className="icon-bar"></span>
-                        <span className="icon-bar"></span>
-                        <span className="icon-bar"></span>
-                    </button>
-                </div>
-                <div className="collapse navbar-collapse" id="navbar-collapse">
-                    <ul className="nav navbar-nav navbar-left">
-
-                        <li className="active" data-toggle="popover" data-placement="right" data-content="Simulation settings">
-                            <a href="#settings">
-                                <img className='svg' src='img/settings.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-                        <li data-toggle="popover" data-placement="right" data-content="Location &amp; weather">
-                            <a href="#location">
-                                <img className='svg' src='img/weather.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-                        <li data-toggle="popover" data-content="Dairy herd" data-placement="right">
-                            <a href="#herd">
-                                <img className='svg' src='img/cow.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-                        <li data-toggle="popover" data-placement="right" data-content="Purchased feedstuff">
-                            <a href="#feed">
-                                <img className='svg' src='img/feed.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-                        <li data-toggle="popover" data-placement="right" data-content="Crop production">
-                            <a href="#crop">
-                                <img className='svg' src='img/crop.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-                        <li data-toggle="popover" data-placement="right" data-content="Grassland &amp; pasture">
-                            <a href="#grass">
-                                <img className='svg' src='img/grass.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-
-                        <li data-toggle="popover" data-placement="right" data-content="Input summary">
-                            <a href="#input-summary">
-                                <img className='svg' src='img/chart.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-
-                        <li data-toggle="popover" data-placement="right" data-content="Run simulation">
-                            <a href="#run-btn">
-                                <img className='svg' src='img/run.svg' height='60' width='60'></img>
-                            </a>
-                        </li>
-
-
-
-                    </ul>
-                </div>
-            </nav>
-
-
+        <div className='container'>
 
 
 
@@ -1008,7 +956,7 @@ export default function Simulation() {
                 </button>
 
 
-                <div className="results" hidden={true}>
+                <div className="results" hidden={!isSimulated}>
 
                     <div id="output-summary" className='col-md-12'>
                         <h2>Results (Output)</h2>
@@ -1108,6 +1056,6 @@ export default function Simulation() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
