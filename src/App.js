@@ -5,7 +5,7 @@ import Home from "./Routes/Home"
 import Simulation from "./Routes/Simulation"
 import Header from "./Header"
 import Loader from "./Loader"
-import SimulationSaves from "./Components/SimulationSaves"
+import SimulationSaves from "./Routes/SimulationSaves"
 
 
 

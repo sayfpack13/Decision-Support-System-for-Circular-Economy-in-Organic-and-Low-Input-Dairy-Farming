@@ -219,10 +219,14 @@ export default function Simulation() {
     return null;
   };
 
+
+
+
+
   return (
-    <Grid container spacing={3}>
-      <Paper elevation={3} style={{ padding: 16 }}>
-        <Typography variant="h6" gutterBottom>
+    <div className='container' >
+      <Paper elevation={3} style={{ padding: 5 }}>
+        <Typography variant="h5" gutterBottom>
           Simulation Parameters
         </Typography>
         <Grid container spacing={3}>
@@ -237,70 +241,63 @@ export default function Simulation() {
                 <Map setCoordinates={setCoordinates} />
               </MapContainer>
             )}
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-              Click on the map to select a location
-            </Typography>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="subtitle1">Weather Information</Typography>
-            {isLoading ? (
-              <CircularProgress />
-            ) : (
-              <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
-                  <TextField
-                    label="Temperature"
-                    variant="outlined"
-                    onChange={(e) => setWeather({ ...weather, temperature: e.target.value })}
-                    type="number"
-                    value={weather.temperature}
-                    fullWidth
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">°C</InputAdornment>
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <TextField
-                    label="Humidity"
-                    variant="outlined"
-                    onChange={(e) => setWeather({ ...weather, humidity: e.target.value })}
-                    type="number"
-                    value={weather.humidity}
-                    fullWidth
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">%</InputAdornment>
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <TextField
-                    label="Precipitation"
-                    variant="outlined"
-                    onChange={(e) => setWeather({ ...weather, precipitation: e.target.value })}
-                    type="number"
-                    value={weather.precipitation}
-                    fullWidth
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">mm</InputAdornment>
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <TextField
-                    label="Radiation"
-                    variant="outlined"
-                    onChange={(e) => setWeather({ ...weather, radiation: e.target.value })}
-                    type="number"
-                    value={weather.radiation}
-                    fullWidth
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">MJ/m²</InputAdornment>
-                    }}
-                  />
-                </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="Temperature"
+                  variant="outlined"
+                  onChange={(e) => setWeather({ ...weather, temperature: e.target.value })}
+                  type="number"
+                  value={weather.temperature}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">°C</InputAdornment>
+                  }}
+                />
               </Grid>
-            )}
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="Humidity"
+                  variant="outlined"
+                  onChange={(e) => setWeather({ ...weather, humidity: e.target.value })}
+                  type="number"
+                  value={weather.humidity}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">%</InputAdornment>
+                  }}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="Precipitation"
+                  variant="outlined"
+                  onChange={(e) => setWeather({ ...weather, precipitation: e.target.value })}
+                  type="number"
+                  value={weather.precipitation}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">mm</InputAdornment>
+                  }}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="Radiation"
+                  variant="outlined"
+                  onChange={(e) => setWeather({ ...weather, radiation: e.target.value })}
+                  type="number"
+                  value={weather.radiation}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">MJ/m²</InputAdornment>
+                  }}
+                />
+              </Grid>
+            </Grid>
           </Grid>
           <Grid item xs={12}>
             <Typography variant="subtitle1">Soil Parameters</Typography>
@@ -475,8 +472,8 @@ export default function Simulation() {
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth variant="outlined">
+          <Grid item xs={12} style={{display:"flex",justifyContent:"center"}}>
+            <FormControl variant="outlined" style={{width:"20%"}}>
               <InputLabel>Prediction Period</InputLabel>
               <Select
                 value={predictionPeriod}
@@ -491,7 +488,7 @@ export default function Simulation() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} style={{display:"flex",justifyContent:"center"}}>
             <Button variant="contained" color="primary" onClick={handleSubmit}>
               Simulate
             </Button>
@@ -503,12 +500,12 @@ export default function Simulation() {
           </Grid>
         </Grid>
       </Paper>
-      {result && <SimulationResults result={result} />}
+      {result && <SimulationResults result={result} small={false}/>}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success">
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Grid>
+    </div>
   );
 }

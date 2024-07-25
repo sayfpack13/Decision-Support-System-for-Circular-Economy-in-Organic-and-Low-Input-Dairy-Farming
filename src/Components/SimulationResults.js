@@ -5,7 +5,7 @@ import { Paper, Typography, Grid, Box } from '@mui/material';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
-export default function SimulationResults({ result }) {
+export default function SimulationResults({ result, small }) {
   const { dates, forageProduction, feedNeeds, totalForageProduction, totalFeedNeeds, forageSurplus, recommendations } = result;
 
   const dataForage = {
@@ -77,25 +77,25 @@ export default function SimulationResults({ result }) {
         Simulation Results
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={small ? 12 : 6}>
           <Box mb={2}>
             <Typography variant="h6">Forage Production Over Time</Typography>
           </Box>
           <Line data={dataForage} options={lineOptions} />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={small ? 12 : 6}>
           <Box mb={2}>
             <Typography variant="h6">Feed Needs Over Time</Typography>
           </Box>
           <Line data={dataFeedNeeds} options={lineOptions} />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={small ? 12 : 4}>
           <Box mb={2}>
             <Typography variant="h6">Comparison of Total Forage Production and Total Feed Needs</Typography>
           </Box>
           <Doughnut data={dataComparison} />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={small ? 12 : 4}>
           <Box mb={2}>
             <Typography variant="h6">Forage Surplus</Typography>
           </Box>
