@@ -29,7 +29,14 @@ export default function Simulation() {
     milkProduction: '25',
     fatContent: '4.0',
     proteinContent: '3.5',
+    age: '3',
+    healthStatus: 'Healthy',
+    feedSupplements: 'None',
+    herdSize: '50'
   });
+  const healthStatuses = ['Healthy', 'Sick', 'Recovering'];
+  const feedSupplements = ['None', 'Grain', 'Protein Supplement', 'Vitamin Supplement'];
+
   const [forageData, setForageData] = useState({
     arableArea: '10',
     grasslandArea: '20',
@@ -94,28 +101,37 @@ export default function Simulation() {
     }
   };
 
+  // https://www.intechopen.com/chapters/62830
   const calculateForageYield = (days) => {
     const { temperature, humidity, radiation } = weather;
-    const soilRetention = parseFloat(soilParams.waterRetention) || 0.2; // Example value
-    const growthRate = calculateGrowthRate(weather, soilParams); // Function to calculate a more refined growth rate
+    const soilRetention = parseFloat(soilParams.waterRetention) || 0.2;
+    const growthRate = calculateGrowthRate(weather, soilParams);
 
-    // Calculate forage yield for each day
     return Array.from({ length: days }, (_, i) => (
-      (parseFloat(forageData.arableArea) || 1) * (0.5 * (temperature - 10) + (0.3 * (100 - humidity)) + (0.2 * radiation) - soilRetention) * Math.pow(growthRate, i + 1)
-    ).toFixed(2));
+      ((parseFloat(forageData.arableArea) || 1) * (0.5 * (temperature - 10) + (0.3 * (100 - humidity)) + (0.2 * radiation) - soilRetention) * Math.pow(growthRate, i + 1))
+    ).toFixed(2)); // Return in kilograms
   };
 
+  // https://www.intechopen.com/chapters/62830
   const calculateFeedNeeds = (days) => {
-    const milkProduction = parseFloat(herdProperties.milkProduction) || 20; // liters per day
-    const energy = milkProduction * 0.3; // MJ/day
-    const protein = milkProduction * 0.15; // kg/day
+    const milkProductionPerCow = parseFloat(herdProperties.milkProduction) || 20;
+    const herdSize = parseInt(herdProperties.herdSize) || 50;
+    const ageFactor = herdProperties.age > 5 ? 0.9 : 1;
+    const healthFactor = herdProperties.healthStatus === 'Sick' ? 1.2 : 1;
+    const supplementFactor = herdProperties.feedSupplements === 'Protein Supplement' ? 0.9 : 1;
 
-    // Calculate feed needs for each day
+    const energyPerCow = milkProductionPerCow * 0.3 * ageFactor * healthFactor * supplementFactor;
+    const proteinPerCow = milkProductionPerCow * 0.15 * ageFactor * healthFactor * supplementFactor;
+
     return Array.from({ length: days }, () => ({
-      energy: energy.toFixed(2),
-      protein: protein.toFixed(2),
+      energy: (energyPerCow * herdSize).toFixed(2), // Kilograms
+      protein: (proteinPerCow * herdSize).toFixed(2), // Kilograms
     }));
   };
+
+
+
+
 
   const calculateGrowthRate = (weather, soilParams) => {
     const { temperature, radiation } = weather;
@@ -193,6 +209,7 @@ export default function Simulation() {
 
     setResult(result);
   };
+
 
   const handleSave = () => {
     // Save to local storage or a backend service
@@ -351,6 +368,17 @@ export default function Simulation() {
             <Typography variant="subtitle1">Herd Properties</Typography>
             <Grid container spacing={2}>
               <Grid item xs={6} sm={4}>
+                <TextField
+                  label="Herd Size"
+                  variant="outlined"
+                  value={herdProperties.herdSize}
+                  onChange={(e) => setHerdProperties({ ...herdProperties, herdSize: e.target.value })}
+                  type="number"
+                  InputProps={{ endAdornment: <InputAdornment position="end">head</InputAdornment> }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={6} sm={4}>
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Breed</InputLabel>
                   <Select
@@ -421,6 +449,49 @@ export default function Simulation() {
                   fullWidth
                 />
               </Grid>
+              <Grid item xs={6} sm={4}>
+                <TextField
+                  label="Age"
+                  variant="outlined"
+                  value={herdProperties.age}
+                  onChange={(e) => setHerdProperties({ ...herdProperties, age: e.target.value })}
+                  type="number"
+                  InputProps={{ endAdornment: <InputAdornment position="end">years</InputAdornment> }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={6} sm={4}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Health Status</InputLabel>
+                  <Select
+                    value={herdProperties.healthStatus}
+                    onChange={(e) => setHerdProperties({ ...herdProperties, healthStatus: e.target.value })}
+                    label="Health Status"
+                  >
+                    {healthStatuses.map((status) => (
+                      <MenuItem key={status} value={status}>
+                        {status}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={6} sm={4}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Feed Supplements</InputLabel>
+                  <Select
+                    value={herdProperties.feedSupplements}
+                    onChange={(e) => setHerdProperties({ ...herdProperties, feedSupplements: e.target.value })}
+                    label="Feed Supplements"
+                  >
+                    {feedSupplements.map((supplement) => (
+                      <MenuItem key={supplement} value={supplement}>
+                        {supplement}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>
@@ -472,8 +543,8 @@ export default function Simulation() {
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={12} style={{display:"flex",justifyContent:"center"}}>
-            <FormControl variant="outlined" style={{width:"20%"}}>
+          <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
+            <FormControl variant="outlined" style={{ width: "20%" }}>
               <InputLabel>Prediction Period</InputLabel>
               <Select
                 value={predictionPeriod}
@@ -488,7 +559,7 @@ export default function Simulation() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} style={{display:"flex",justifyContent:"center"}}>
+          <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
             <Button variant="contained" color="primary" onClick={handleSubmit}>
               Simulate
             </Button>
@@ -500,7 +571,7 @@ export default function Simulation() {
           </Grid>
         </Grid>
       </Paper>
-      {result && <SimulationResults result={result} small={false}/>}
+      {result && <SimulationResults results={[result]} small={false} />}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success">
           {snackbarMessage}

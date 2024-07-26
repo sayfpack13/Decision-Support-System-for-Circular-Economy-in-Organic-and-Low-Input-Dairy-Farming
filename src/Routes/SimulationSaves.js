@@ -58,16 +58,9 @@ export default function SimulationSaves() {
                     </FormControl>
                 </Grid>
                 <Grid container spacing={2}>
-                    {selectedSimulations.map((sim, index) => (
-                        <Grid item xs={12} md={6} key={index}>
-                            <Box border={1} padding={2}>
-                                <SimulationResults result={sim} small={true} />
-                                <Button variant="outlined" color="secondary" onClick={() => handleRemoveComparison(sim.name)}>
-                                    Remove from Comparison
-                                </Button>
-                            </Box>
-                        </Grid>
-                    ))}
+                    <Grid item xs={12}>
+                        <SimulationResults results={selectedSimulations} small={true} />
+                    </Grid>
                 </Grid>
             </Paper>
         </div>
