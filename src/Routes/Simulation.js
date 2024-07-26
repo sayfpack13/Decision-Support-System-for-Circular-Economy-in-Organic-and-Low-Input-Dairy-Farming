@@ -1,59 +1,36 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Select, MenuItem, TextField, Button, FormControl, InputLabel, Grid, Typography, CircularProgress, Snackbar, Alert, Paper, InputAdornment } from '@mui/material';
+import { Select, MenuItem, TextField, Button, FormControl, InputLabel, Grid, Typography, CircularProgress, Snackbar, Alert, Paper, InputAdornment, Divider } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import SimulationResults from '../Components/SimulationResults';
 import { LoaderContext } from '../Loader';
 import { useNavigate } from 'react-router-dom';
+import { coordinatesModel, forageModel, herdModel, simulationRecordModel, soilModel, weatherModel } from '../utils/InputModels';
 
 
 export default function Simulation() {
   const navigate = useNavigate();
-  const [coordinates, setCoordinates] = useState({ lat: null, lon: null });
-  const [weather, setWeather] = useState({
-    temperature: '',
-    humidity: '',
-    precipitation: '',
-    radiation: ''
-  });
-  const [soilParams, setSoilParams] = useState({
-    soilType: 'Sandy Loam',
-    waterRetention: '0.2',
-    nutrientContent: 'Low',
-  });
-  const [herdProperties, setHerdProperties] = useState({
-    breed: 'Holstein',
-    weight: '500',
-    calvingInterval: '365',
-    milkProduction: '25',
-    fatContent: '4.0',
-    proteinContent: '3.5',
-    age: '3',
-    healthStatus: 'Healthy',
-    feedSupplements: 'None',
-    herdSize: '50'
-  });
-  const healthStatuses = ['Healthy', 'Sick', 'Recovering'];
-  const feedSupplements = ['None', 'Grain', 'Protein Supplement', 'Vitamin Supplement'];
 
-  const [forageData, setForageData] = useState({
-    arableArea: '10',
-    grasslandArea: '20',
-    legumeShare: '30',
-    nitrogenInput: '100',
-  });
+  // Data Models
+  const [coordinates, setCoordinates] = useState(coordinatesModel(null, null));
+  const [weather, setWeather] = useState(weatherModel());
+  const [soilParams, setSoilParams] = useState(soilModel);
+  const [herdProperties, setHerdProperties] = useState(herdModel());
+  const [forageData, setForageData] = useState(forageModel());
+
+
   const { isLoading, setisLoading } = useContext(LoaderContext);
-  const [result, setResult] = useState(null);
-  const [savedSimulations, setSavedSimulations] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [predictionPeriod, setPredictionPeriod] = useState(7); // Default to 7 days
+  const [simulationRecord, setsimulationRecord] = useState(simulationRecordModel())
+  const [isSimulated, setisSimulated] = useState(false)
 
-  const soilTypes = ['Sandy Loam', 'Clay Loam', 'Silt Loam', 'Peat'];
-  const breeds = ['Holstein', 'Jersey', 'Guernsey', 'Ayrshire'];
-  const nutrientContents = ['Low', 'Medium', 'High'];
-  const predictionPeriods = [7, 14, 30]; // Prediction period options in days
+
+  const [selectedSimulationGroup, setselectedSimulationGroup] = useState(''); // State for selected group
+  const [simulationGroup, setsimulationGroup] = useState(''); // State for new group input
+  const [simulationGroups, setsimulationGroups] = useState([]); // Initial groups fetched from local storage
+
 
   useEffect(() => {
     if (coordinates.lat && coordinates.lon) {
@@ -77,6 +54,13 @@ export default function Simulation() {
     }
   }, []);
 
+  useEffect(() => {
+    // Fetch groups from local storage
+    const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
+    const existingGroups = [...new Set(simulations.map(sim => sim.group_id))];
+    setsimulationGroups(existingGroups);
+  }, []);
+
   const fetchWeatherData = async (lat, lon) => {
     const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY; // Replace with your API key
     try {
@@ -84,7 +68,8 @@ export default function Simulation() {
       const { main, weather } = response.data;
       const temperature = main.temp;
       const humidity = main.humidity;
-      const precipitation = weather[0].description.includes('rain') ? '5' : '0'; // Simplified assumption
+      const description = weather[0].description
+      const precipitation = description.includes('rain') ? '5' : '0'; // Simplified assumption
       const radiation = 15; // Placeholder value, actual value needs a different source
 
       setWeather({
@@ -92,6 +77,7 @@ export default function Simulation() {
         humidity,
         precipitation,
         radiation,
+        description
       });
     } catch (error) {
       console.error("Error fetching weather data", error);
@@ -101,123 +87,35 @@ export default function Simulation() {
     }
   };
 
-  // https://www.intechopen.com/chapters/62830
-  const calculateForageYield = (days) => {
-    const { temperature, humidity, radiation } = weather;
-    const soilRetention = parseFloat(soilParams.waterRetention) || 0.2;
-    const growthRate = calculateGrowthRate(weather, soilParams);
-
-    return Array.from({ length: days }, (_, i) => (
-      ((parseFloat(forageData.arableArea) || 1) * (0.5 * (temperature - 10) + (0.3 * (100 - humidity)) + (0.2 * radiation) - soilRetention) * Math.pow(growthRate, i + 1))
-    ).toFixed(2)); // Return in kilograms
-  };
-
-  // https://www.intechopen.com/chapters/62830
-  const calculateFeedNeeds = (days) => {
-    const milkProductionPerCow = parseFloat(herdProperties.milkProduction) || 20;
-    const herdSize = parseInt(herdProperties.herdSize) || 50;
-    const ageFactor = herdProperties.age > 5 ? 0.9 : 1;
-    const healthFactor = herdProperties.healthStatus === 'Sick' ? 1.2 : 1;
-    const supplementFactor = herdProperties.feedSupplements === 'Protein Supplement' ? 0.9 : 1;
-
-    const energyPerCow = milkProductionPerCow * 0.3 * ageFactor * healthFactor * supplementFactor;
-    const proteinPerCow = milkProductionPerCow * 0.15 * ageFactor * healthFactor * supplementFactor;
-
-    return Array.from({ length: days }, () => ({
-      energy: (energyPerCow * herdSize).toFixed(2), // Kilograms
-      protein: (proteinPerCow * herdSize).toFixed(2), // Kilograms
-    }));
-  };
 
 
-
-
-
-  const calculateGrowthRate = (weather, soilParams) => {
-    const { temperature, radiation } = weather;
-    const { waterRetention, nutrientContent } = soilParams;
-
-    // Example refined growth rate calculation
-    let growthRate = 1.05; // Base growth rate
-
-    // Adjust growth rate based on temperature
-    if (temperature > 20 && temperature < 30) {
-      growthRate += 0.01;
-    } else if (temperature < 10 || temperature > 35) {
-      growthRate -= 0.01;
-    }
-
-    // Adjust growth rate based on radiation
-    if (radiation > 20) {
-      growthRate += 0.01;
-    } else if (radiation < 10) {
-      growthRate -= 0.01;
-    }
-
-    // Adjust growth rate based on soil water retention
-    if (waterRetention > 0.3) {
-      growthRate += 0.01;
-    } else if (waterRetention < 0.1) {
-      growthRate -= 0.01;
-    }
-
-    // Adjust growth rate based on soil nutrient content
-    if (nutrientContent === 'High') {
-      growthRate += 0.01;
-    } else if (nutrientContent === 'Low') {
-      growthRate -= 0.01;
-    }
-
-    return growthRate;
-  };
 
   const handleSubmit = () => {
-    const forageYield = calculateForageYield(predictionPeriod);
-    const feedNeeds = calculateFeedNeeds(predictionPeriod);
+    const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
 
-    const startDate = new Date();
-    const dates = Array.from({ length: predictionPeriod }, (_, i) => {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      return date.toISOString().split('T')[0];
-    });
-
-    const totalForageProduction = forageYield.reduce((a, b) => parseFloat(a) + parseFloat(b), 0).toFixed(2);
-    const totalFeedNeeds = feedNeeds.reduce((a, b) => parseFloat(a) + parseFloat(b.energy), 0).toFixed(2);
-    const forageSurplus = (totalForageProduction - totalFeedNeeds).toFixed(2);
-
-    let recommendations = '';
-    if (forageSurplus > 0) {
-      recommendations = 'You have a surplus of forage. Consider storing excess forage or reducing nitrogen input.';
-    } else if (forageSurplus < 0) {
-      recommendations = 'You have a deficit of forage. Consider increasing nitrogen input, adjusting crop rotation, or purchasing additional feed.';
-    } else {
-      recommendations = 'Your forage production matches your herd\'s needs. Maintain your current management practices.';
-    }
-
-    const result = {
-      name: `Simulation ${new Date().toISOString().replace('T', ' ').split('.')[0]}`,
-      date: new Date().toISOString().replace('T', ' ').split('.')[0],
-      dates,
-      forageProduction: forageYield,
-      feedNeeds: feedNeeds.map(need => need.energy),
-      totalForageProduction,
-      totalFeedNeeds,
-      forageSurplus,
-      recommendations,
-    };
-
-    setResult(result);
+    const record = simulationRecordModel(
+      simulations.length,
+      simulationRecord.group_id,
+      simulationRecord.name,
+      new Date().toISOString().replace('T', ' ').split('.')[0],
+      coordinates,
+      weather,
+      soilParams,
+      herdProperties,
+      forageData
+    )
+    setsimulationRecord(record)
+    setisSimulated(true)
   };
+
 
 
   const handleSave = () => {
     // Save to local storage or a backend service
     const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
-    simulations.push(result);
-    localStorage.setItem('simulations', JSON.stringify(simulations));
 
-    setSavedSimulations(simulations); // Update the state with the new simulation
+    localStorage.setItem('simulations', JSON.stringify([...simulations, simulationRecord]));
+
 
     setSnackbarMessage('Simulation saved successfully!');
     setSnackbarOpen(true);
@@ -314,6 +212,19 @@ export default function Simulation() {
                   }}
                 />
               </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="Description"
+                  variant="outlined"
+                  onChange={(e) => setWeather({ ...weather, description: e.target.value })}
+                  type="text"
+                  value={weather.description}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">Now</InputAdornment>
+                  }}
+                />
+              </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>
@@ -327,7 +238,7 @@ export default function Simulation() {
                     onChange={(e) => setSoilParams({ ...soilParams, soilType: e.target.value })}
                     label="Soil Type"
                   >
-                    {soilTypes.map((type) => (
+                    {soilModel().soilTypes.map((type) => (
                       <MenuItem key={type} value={type}>
                         {type}
                       </MenuItem>
@@ -354,7 +265,7 @@ export default function Simulation() {
                     onChange={(e) => setSoilParams({ ...soilParams, nutrientContent: e.target.value })}
                     label="Nutrient Content"
                   >
-                    {nutrientContents.map((content) => (
+                    {soilModel().nutrientContents.map((content) => (
                       <MenuItem key={content} value={content}>
                         {content}
                       </MenuItem>
@@ -386,7 +297,7 @@ export default function Simulation() {
                     onChange={(e) => setHerdProperties({ ...herdProperties, breed: e.target.value })}
                     label="Breed"
                   >
-                    {breeds.map((breed) => (
+                    {herdModel().breeds.map((breed) => (
                       <MenuItem key={breed} value={breed}>
                         {breed}
                       </MenuItem>
@@ -468,7 +379,7 @@ export default function Simulation() {
                     onChange={(e) => setHerdProperties({ ...herdProperties, healthStatus: e.target.value })}
                     label="Health Status"
                   >
-                    {healthStatuses.map((status) => (
+                    {herdModel().healthStatuses.map((status) => (
                       <MenuItem key={status} value={status}>
                         {status}
                       </MenuItem>
@@ -480,11 +391,11 @@ export default function Simulation() {
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Feed Supplements</InputLabel>
                   <Select
-                    value={herdProperties.feedSupplements}
-                    onChange={(e) => setHerdProperties({ ...herdProperties, feedSupplements: e.target.value })}
+                    value={herdProperties.feedSupplement}
+                    onChange={(e) => setHerdProperties({ ...herdProperties, feedSupplement: e.target.value })}
                     label="Feed Supplements"
                   >
-                    {feedSupplements.map((supplement) => (
+                    {herdModel().feedSupplements.map((supplement) => (
                       <MenuItem key={supplement} value={supplement}>
                         {supplement}
                       </MenuItem>
@@ -543,35 +454,71 @@ export default function Simulation() {
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
-            <FormControl variant="outlined" style={{ width: "20%" }}>
-              <InputLabel>Prediction Period</InputLabel>
-              <Select
-                value={predictionPeriod}
-                onChange={(e) => setPredictionPeriod(e.target.value)}
-                label="Prediction Period"
-              >
-                {predictionPeriods.map((period) => (
-                  <MenuItem key={period} value={period}>
-                    {period} days
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
+
+          <Grid item xs={12} style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center"
+          }}>
             <Button variant="contained" color="primary" onClick={handleSubmit}>
               Simulate
             </Button>
-            {result && (
-              <Button variant="contained" color="secondary" onClick={handleSave} style={{ marginLeft: 16 }}>
-                Save Simulation
-              </Button>
+            {isSimulated && (
+              <Grid item xs={6} sm={3} style={{ marginTop: 10 }}>
+                <Typography variant="subtitle1">Save Simulation Settings</Typography>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Group</InputLabel>
+                  <Select
+                    value={selectedSimulationGroup}
+                    onChange={(e) => {
+                      setselectedSimulationGroup(e.target.value)
+                      setsimulationRecord({ ...simulationRecord, group_id: e.target.value })
+                    }}
+                    label="Group"
+                  >
+                    {simulationGroups.map((group) => (
+                      <MenuItem key={group} value={group}>
+                        {group}
+                      </MenuItem>
+                    ))}
+                    <MenuItem value="create-new">Create New Group</MenuItem>
+                  </Select>
+                </FormControl>
+                {selectedSimulationGroup === 'create-new' && (
+                  <TextField
+                    label="New Group Name"
+                    variant="outlined"
+                    value={simulationGroup}
+                    onChange={(e) => {
+                      setsimulationGroup(e.target.value)
+                      setsimulationRecord({ ...simulationRecord, group_id: e.target.value })
+                    }}
+                    fullWidth
+                    style={{ marginTop: 16 }}
+                  />
+                )}
+                <TextField
+                  label="Simulation Name"
+                  variant="outlined"
+                  value={simulationRecord.name}
+                  onChange={(e) => {
+                    setsimulationRecord({ ...simulationRecord, name: e.target.value })
+                  }}
+                  fullWidth
+                  style={{ marginTop: 16 }}
+                />
+                <Button variant="contained" color="secondary" disabled={!selectedSimulationGroup ||(!simulationGroup && selectedSimulationGroup==="create-new")} onClick={handleSave} style={{ marginTop: 5 }}>
+                  Save Simulation
+                </Button>
+              </Grid>
             )}
+
+
           </Grid>
         </Grid>
       </Paper>
-      {result && <SimulationResults results={[result]} small={false} />}
+      {isSimulated && <SimulationResults simulationRecords={[simulationRecord]} small={false} />}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success">
           {snackbarMessage}
