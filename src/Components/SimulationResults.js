@@ -1,10 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, TimeScale } from 'chart.js';
 import { Paper, Typography, Grid, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { simulationRecordModel, simulationResultModel } from '../utils/InputModels';
+import { simulationResultModel } from '../utils/InputModels';
 import { simulateResult } from '../utils/Calculations';
 import { LoaderContext } from '../Loader';
+import 'chartjs-adapter-date-fns';
+import debounce from 'lodash/debounce';
+import zoomPlugin from 'chartjs-plugin-zoom';
 
 ChartJS.register(
     CategoryScale,
@@ -15,153 +18,195 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    ArcElement
+    TimeScale,
+    zoomPlugin
 );
 
 export default function SimulationResults({ simulationRecords, small }) {
-    const predictionPeriods = [1, 7, 30]; // Prediction period options in days
-    const [predictionPeriod, setPredictionPeriod] = useState(predictionPeriods[0]); // Default to 7 days
-    const [simulationResults, setsimulationResults] = useState([]);
-    const [simulationResultsDates, setsimulationResultsDates] = useState([]);
+    const predictionPeriods = [1, 7, 30];
+    const [predictionPeriod, setPredictionPeriod] = useState(predictionPeriods[0]);
+    const [simulationResults, setSimulationResults] = useState([]);
+    const [simulationResultsDates, setSimulationResultsDates] = useState([]);
     const { isLoading, setisLoading } = useContext(LoaderContext);
 
+    const handleSimulate = useCallback(async () => {
+        try {
+            const groupedSimulationRecords = {};
+            const groupIds = [];
+
+            simulationRecords.forEach(simulationRecord => {
+                if (!groupedSimulationRecords[simulationRecord.group_id]) {
+                    groupedSimulationRecords[simulationRecord.group_id] = [];
+                    groupIds.push(simulationRecord.group_id);
+                }
+                groupedSimulationRecords[simulationRecord.group_id].push(simulationRecord);
+            });
+
+            const newSimulationResults = [];
+            const newSimulationResultsDates = [];
+
+            groupIds.forEach(group_id => {
+                const groupedSimulationRecord = groupedSimulationRecords[group_id];
+                groupedSimulationRecord.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                let combinedSimulationResult = simulationResultModel();
+                combinedSimulationResult.group_id = group_id;
+
+                groupedSimulationRecord.forEach((record, index) => {
+                    const isLast = index === groupedSimulationRecord.length - 1;
+                    const simulationResult = simulateResult(record, isLast ? predictionPeriod : 1);
+
+                    combinedSimulationResult.simulationRecords.push(...simulationResult.simulationRecords);
+                    combinedSimulationResult.dates.push(...simulationResult.dates);
+                    combinedSimulationResult.forageYield.push(...simulationResult.forageYield);
+                    combinedSimulationResult.feedNeeds.push(...simulationResult.feedNeeds);
+                    combinedSimulationResult.totalForageProduction.push(...simulationResult.totalForageProduction);
+                    combinedSimulationResult.totalFeedNeeds.push(...simulationResult.totalFeedNeeds);
+                    combinedSimulationResult.forageSurplus.push(...simulationResult.forageSurplus);
+                    combinedSimulationResult.recommendations.push(...simulationResult.recommendations);
+                });
+
+                newSimulationResults.push(combinedSimulationResult);
+                newSimulationResultsDates.push(combinedSimulationResult.dates);
+            });
+
+            setSimulationResults(newSimulationResults);
+            setSimulationResultsDates(newSimulationResultsDates);
+        } finally {
+            setisLoading(false);
+        }
+    }, [simulationRecords, predictionPeriod, setisLoading]);
+
+    const debouncedHandleSimulate = useMemo(() => debounce(handleSimulate, 300), [handleSimulate]);
+
     useEffect(() => {
-        if (!simulationRecords.length) {
-            return;
-        }
+        if (!simulationRecords.length) return;
         setisLoading(true);
-        handleSimulate();
-    }, [simulationRecords, predictionPeriod]);
+        debouncedHandleSimulate();
+    }, [simulationRecords, predictionPeriod, debouncedHandleSimulate, setisLoading]);
 
-    const handleSimulate = () => {
-        var grouped_simulationRecords = [];
-        var group_ids = [];
-
-        // Group by group_id
-        for (let a = 0; a < simulationRecords.length; a++) {
-            const simulationRecord = simulationRecords[a];
-            if (!grouped_simulationRecords[simulationRecord.group_id]) {
-                grouped_simulationRecords[simulationRecord.group_id] = [];
-                group_ids.push(simulationRecord.group_id);
-            }
-            grouped_simulationRecords[simulationRecord.group_id].push(simulationRecord);
-        }
-
-        const new_simulationResults = [];
-        const new_simulationResultsDates = [];
-
-        // Combine simulation records values
-        for (let a = 0; a < group_ids.length; a++) {
-            const grouped_simulationRecord = grouped_simulationRecords[group_ids[a]];
-
-            const combined_simulationResult = simulationResultModel();
-            combined_simulationResult.group_id = group_ids[a];
-
-            for (let b = 0; b < grouped_simulationRecord.length; b++) {
-                const simulationResult = simulateResult(grouped_simulationRecord[b], predictionPeriod);
-
-                combined_simulationResult.simulationRecords.push(...simulationResult.simulationRecords);
-                combined_simulationResult.dates.push(...simulationResult.dates);
-                combined_simulationResult.forageYield.push(...simulationResult.forageYield);
-                combined_simulationResult.feedNeeds.push(...simulationResult.feedNeeds);
-                combined_simulationResult.totalForageProduction.push(...simulationResult.totalForageProduction);
-                combined_simulationResult.totalFeedNeeds.push(...simulationResult.totalFeedNeeds);
-                combined_simulationResult.forageSurplus.push(...simulationResult.forageSurplus);
-                combined_simulationResult.recommendations.push(...simulationResult.recommendations);
-            }
-
-            new_simulationResults.push(combined_simulationResult);
-            new_simulationResultsDates.push(combined_simulationResult.dates);
-        }
-
-        setsimulationResults(new_simulationResults);
-        setsimulationResultsDates(new_simulationResultsDates);
-        setisLoading(false);
-    };
-
-    // Data for Line charts
-    const dataForage = {
-        labels: simulationResultsDates.flat(),
-        datasets: simulationResults.map((result, index) => ({
-            label: `Forage Production (${result.group_id})`,
-            data: result.forageYield.flat(),
+    const processData = (results, key) => {
+        return results.map((result, index) => ({
+            label: `${key.replace(/([a-z])([A-Z])/g, '$1 $2')} (${result.group_id})`,
+            data: result.dates.map((date, i) => ({ x: new Date(date), y: result[key][i] })),
             borderColor: `hsl(${index * 60}, 100%, 50%)`,
-            backgroundColor: `hsla(${index * 60}, 100%, 50%, 0.2)`,
+            backgroundColor: `hsla(${index * 60}, 100%, 50%, 0.6)`,
             borderWidth: 1,
-        })),
+            barThickness: 10, // Fixed bar thickness
+            maxBarThickness: 15, // Maximum bar thickness
+            minBarLength: 2 // Minimum bar length
+        }));
     };
 
-    const dataFeedNeeds = {
-        labels: simulationResultsDates.flat(),
-        datasets: simulationResults.map((result, index) => ({
-            label: `Feed Needs (${result.group_id})`,
-            data: result.feedNeeds.flat(),
-            borderColor: `hsl(${index * 60}, 100%, 50%)`,
-            backgroundColor: `hsla(${index * 60}, 100%, 50%, 0.2)`,
-            borderWidth: 1,
-        })),
-    };
+    const processedDataForage = useMemo(() => processData(simulationResults, 'forageYield'), [simulationResults]);
+    const processedDataFeedNeeds = useMemo(() => processData(simulationResults, 'feedNeeds'), [simulationResults]);
+    const processedDataComparison = useMemo(() => [
+        ...processData(simulationResults, 'totalForageProduction'),
+        ...processData(simulationResults, 'totalFeedNeeds')
+    ], [simulationResults]);
+    const processedDataSurplus = useMemo(() => processData(simulationResults, 'forageSurplus'), [simulationResults]);
 
-    // Data for Bar charts
-    const dataComparison = {
-        labels: simulationResultsDates.flat(),
-        datasets: simulationResults.map((result, index) => ({
-            label: `Total Forage Production (${result.group_id})`,
-            data: result.totalForageProduction,
-            backgroundColor: `hsl(${index * 60}, 100%, 50%)`,
-            borderColor: `hsl(${index * 60}, 100%, 30%)`,
-            borderWidth: 1,
-        })).concat(
-            simulationResults.map((result, index) => ({
-                label: `Total Feed Needs (${result.group_id})`,
-                data: result.totalFeedNeeds,
-                backgroundColor: `hsl(${(index + 1) * 60}, 50%, 50%)`,
-                borderColor: `hsl(${(index + 1) * 60}, 50%, 30%)`,
-                borderWidth: 1,
-            }))
-        ),
-    };
+    const dataForage = useMemo(() => ({
+        datasets: processedDataForage,
+    }), [processedDataForage]);
 
-    const dataSurplus = {
-        labels: simulationResultsDates.flat(),
-        datasets: simulationResults.map((result, index) => ({
-            label: `Forage Surplus (${result.group_id})`,
-            data: result.forageSurplus,
-            borderColor: `hsl(${index * 60}, 100%, 50%)`,
-            backgroundColor: `hsla(${index * 60}, 100%, 50%, 0.2)`,
-            borderWidth: 1,
-        })),
-    };
+    const dataFeedNeeds = useMemo(() => ({
+        datasets: processedDataFeedNeeds,
+    }), [processedDataFeedNeeds]);
 
-    const lineOptions = {
+    const dataComparison = useMemo(() => ({
+        datasets: processedDataComparison,
+    }), [processedDataComparison]);
+
+    const dataSurplus = useMemo(() => ({
+        datasets: processedDataSurplus,
+    }), [processedDataSurplus]);
+
+    const chartOptions = {
         scales: {
+            x: {
+                type: 'time',
+                time: {
+                    unit: 'day',
+                    displayFormats: {
+                        day: 'MMM d, h:mm a'
+                    },
+                    tooltipFormat: 'MMM d, yyyy, h:mm a'
+                },
+                title: {
+                    display: true,
+                    text: 'Date and Time',
+                    color: '#4a4a4a',
+                    font: {
+                        family: 'Arial',
+                        size: 14,
+                        weight: 'bold',
+                    }
+                },
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 0,
+                    color: '#4a4a4a',
+                    font: {
+                        family: 'Arial',
+                        size: 12,
+                    }
+                }
+            },
             y: {
                 beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Values (kg)',
+                    color: '#4a4a4a',
+                    font: {
+                        family: 'Arial',
+                        size: 14,
+                        weight: 'bold',
+                    }
+                },
+                ticks: {
+                    color: '#4a4a4a',
+                    font: {
+                        family: 'Arial',
+                        size: 12,
+                    }
+                }
             },
         },
         plugins: {
             legend: {
                 display: true,
+                position: 'top',
+                labels: {
+                    color: '#4a4a4a',
+                    font: {
+                        family: 'Arial',
+                        size: 12,
+                    }
+                }
             },
             title: {
                 display: true,
-                text: 'Forage Production vs Feed Needs',
+                text: 'Simulation Results',
+                color: '#4a4a4a',
+                font: {
+                    family: 'Arial',
+                    size: 16,
+                    weight: 'bold',
+                }
             },
-        },
-    };
-
-    const barOptions = {
-        scales: {
-            y: {
-                beginAtZero: true,
-            },
-        },
-        plugins: {
-            legend: {
-                display: true,
-            },
-            title: {
-                display: true,
+            zoom: {
+                pan: {
+                    enabled: true,
+                    mode: 'x',
+                },
+                zoom: {
+                    wheel: {
+                        enabled: true,
+                    },
+                    mode: 'x',
+                },
             },
         },
     };
@@ -176,11 +221,16 @@ export default function SimulationResults({ simulationRecords, small }) {
                     <InputLabel>Prediction Period</InputLabel>
                     <Select
                         value={predictionPeriod}
-                        onChange={(e) => setPredictionPeriod(e.target.value)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (predictionPeriods.includes(value)) {
+                                setPredictionPeriod(value);
+                            }
+                        }}
                         label="Prediction Period"
                     >
-                        {predictionPeriods.map((period) => (
-                            <MenuItem key={period} value={period}>
+                        {predictionPeriods.map((period, index) => (
+                            <MenuItem key={index} value={period}>
                                 {period} days
                             </MenuItem>
                         ))}
@@ -192,25 +242,29 @@ export default function SimulationResults({ simulationRecords, small }) {
                     <Box mb={2}>
                         <Typography variant="h6">Forage Production Over Time</Typography>
                     </Box>
-                    <Line data={dataForage} options={lineOptions} />
+                    <Line data={dataForage} options={chartOptions} />
                 </Grid>
                 <Grid item xs={12} md={small ? 12 : 6}>
                     <Box mb={2}>
                         <Typography variant="h6">Feed Needs Over Time</Typography>
                     </Box>
-                    <Line data={dataFeedNeeds} options={lineOptions} />
+                    <Bar data={dataFeedNeeds} options={chartOptions} />
                 </Grid>
                 <Grid item xs={12} md={small ? 12 : 6}>
                     <Box mb={2}>
                         <Typography variant="h6">Comparison of Total Forage Production and Total Feed Needs</Typography>
                     </Box>
-                    <Bar data={dataComparison} options={{ ...barOptions, plugins: { ...barOptions.plugins, title: { ...barOptions.plugins.title, text: 'Total Forage Production vs Total Feed Needs' } } }} />
+                    <div style={{ overflowX: 'auto' }}>
+                        <div style={{ minWidth: '1000px' }}>
+                            <Bar data={dataComparison} options={chartOptions} />
+                        </div>
+                    </div>
                 </Grid>
                 <Grid item xs={12} md={small ? 12 : 6}>
                     <Box mb={2}>
-                        <Typography variant="h6">Forage Surplus</Typography>
+                        <Typography variant="h6">Forage Surplus Over Time</Typography>
                     </Box>
-                    <Bar data={dataSurplus} options={{ ...barOptions, plugins: { ...barOptions.plugins, title: { ...barOptions.plugins.title, text: 'Forage Surplus' } } }} />
+                    <Line data={dataSurplus} options={chartOptions} />
                 </Grid>
             </Grid>
         </Paper>
