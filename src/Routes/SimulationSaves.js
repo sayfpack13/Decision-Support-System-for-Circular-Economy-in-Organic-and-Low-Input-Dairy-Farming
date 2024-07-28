@@ -1,16 +1,21 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Grid, Button, Paper, Chip } from '@mui/material';
-import SimulationResults from '../Components/SimulationResults';
+import { Box, Typography, FormControl, InputLabel, Select, MenuItem, Grid, Button, Paper, Chip, Card, CardContent, CardActionArea, TextField } from '@mui/material';
 import { LoaderContext } from '../Loader';
+import SimulationResults from '../Components/SimulationResults';
 
 export default function SimulationSaves() {
     const { isLoading, setisLoading } = useContext(LoaderContext);
     const [selectedGroup, setSelectedGroup] = useState('');
-    const [selectedSimulation, setSelectedSimulation] = useState(null);
+    const [selectedSimulations, setSelectedSimulations] = useState([]);
+    const [confirmedSimulations, setConfirmedSimulations] = useState([]);
     const [simulationGroups, setSimulationGroups] = useState([]);
     const [simulationRecords, setSimulationRecords] = useState([]);
     const [groupedSimulations, setGroupedSimulations] = useState({});
-    const [selectedSimulations, setSelectedSimulations] = useState([]);
+    const [dateFilterStart, setDateFilterStart] = useState('');
+    const [dateFilterEnd, setDateFilterEnd] = useState('');
+    const [showResults, setShowResults] = useState(false);
+
+    const isSelected = (sim) => selectedSimulations.some(selected => selected.name === sim.name);
 
     useEffect(() => {
         const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
@@ -27,41 +32,50 @@ export default function SimulationSaves() {
         setisLoading(false);
     }, [setisLoading]);
 
-    useEffect(() => {
-        if (selectedGroup) {
-            setSelectedSimulation(null);
-        }
-    }, [selectedGroup]);
-
     const handleGroupSelect = (event) => {
         setSelectedGroup(event.target.value);
+        setShowResults(false);
     };
 
-    const handleSelect = (event) => {
-        const name = event.target.value;
-        const selected = simulationRecords.find(sim => sim.name === name);
-        setSelectedSimulation(selected);
+    const handleSelectSimulation = (sim) => {
+        setSelectedSimulations(prev => 
+            prev.some(selected => selected.name === sim.name) ? 
+            prev.filter(selected => selected.name !== sim.name) : 
+            [...prev, sim]
+        );
     };
 
-    const handleAddComparison = () => {
-        if (selectedSimulation && !selectedSimulations.find(sim => sim.name === selectedSimulation.name)) {
-            setSelectedSimulations([...selectedSimulations, selectedSimulation]);
-        }
+    const handleConfirmComparison = () => {
+        setConfirmedSimulations(selectedSimulations);
+        setShowResults(true);
     };
 
-    const handleRemoveComparison = (name) => {
-        setSelectedSimulations(selectedSimulations.filter(sim => sim.name !== name));
+    const handleClearSelections = () => {
+        setSelectedSimulations([]);
+        setConfirmedSimulations([]);
+        setShowResults(false);
+    };
+
+    const filteredSimulations = () => {
+        if (!selectedGroup) return [];
+        const sims = groupedSimulations[selectedGroup] || [];
+        return sims.filter(sim => {
+            const simDate = new Date(sim.date);
+            const startDate = dateFilterStart ? new Date(dateFilterStart) : new Date(-8640000000000000); // Min possible date
+            const endDate = dateFilterEnd ? new Date(dateFilterEnd) : new Date(8640000000000000); // Max possible date
+            return simDate >= startDate && simDate <= endDate;
+        });
     };
 
     return (
         <div className='container'>
-            <Paper elevation={3} style={{ padding: 5 }}>
+            <Paper elevation={3} style={{ padding: 20 }}>
                 <Typography variant="h5" gutterBottom>
                     Saved Simulations
                 </Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
-                        <FormControl margin="normal" style={{ width: "20%" }}>
+                        <FormControl margin="normal" style={{ width: "30%" }}>
                             <InputLabel>Select Group</InputLabel>
                             <Select
                                 value={selectedGroup}
@@ -82,45 +96,95 @@ export default function SimulationSaves() {
                     {selectedGroup && (
                         <>
                             <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
-                                <FormControl margin="normal" style={{ width: "20%" }}>
-                                    <InputLabel>Select Simulation</InputLabel>
-                                    <Select
-                                        value={selectedSimulation ? selectedSimulation.name : ''}
-                                        onChange={handleSelect}
-                                    >
-                                        {groupedSimulations[selectedGroup]?.length > 0 ? (
-                                            groupedSimulations[selectedGroup].map((sim) => (
-                                                <MenuItem key={sim.name} value={sim.name}>
-                                                    {sim.name}
-                                                </MenuItem>
-                                            ))
-                                        ) : (
-                                            <MenuItem disabled>No simulations available</MenuItem>
-                                        )}
-                                    </Select>
-                                    <Button variant="contained" color="primary" onClick={handleAddComparison} disabled={!selectedSimulation}>
-                                        Add to Comparison
-                                    </Button>
-                                </FormControl>
+                                <TextField
+                                    label="Start Date"
+                                    type="date"
+                                    InputLabelProps={{ shrink: true }}
+                                    variant="outlined"
+                                    size="small"
+                                    style={{ marginRight: 8 }}
+                                    value={dateFilterStart}
+                                    onChange={(e) => setDateFilterStart(e.target.value)}
+                                />
+                                <TextField
+                                    label="End Date"
+                                    type="date"
+                                    InputLabelProps={{ shrink: true }}
+                                    variant="outlined"
+                                    size="small"
+                                    value={dateFilterEnd}
+                                    onChange={(e) => setDateFilterEnd(e.target.value)}
+                                />
                             </Grid>
                             <Grid item xs={12}>
                                 <Typography variant="h6" gutterBottom>
-                                    Selected Simulations
+                                    Available Simulations
                                 </Typography>
                                 <Box style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                                    {selectedSimulations.map((sim) => (
-                                        <Chip
+                                    {filteredSimulations().map((sim) => (
+                                        <Card
                                             key={sim.name}
-                                            label={sim.name+" ("+sim.group_id+")"}
-                                            onDelete={() => handleRemoveComparison(sim.name)}
-                                            color="primary"
-                                        />
+                                            style={{
+                                                width: 200,
+                                                margin: 8,
+                                                border: isSelected(sim) ? '2px solid #3f51b5' : '1px solid #ddd',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s, border-color 0.2s',
+                                                transform: isSelected(sim) ? 'scale(1.05)' : 'scale(1)',
+                                                backgroundColor: isSelected(sim) ? '#e3f2fd' : '#fff'
+                                            }}
+                                            onClick={() => handleSelectSimulation(sim)}
+                                        >
+                                            <CardActionArea>
+                                                <CardContent>
+                                                    <Typography variant="h6">
+                                                        {sim.name}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="textSecondary">
+                                                        {sim.date}
+                                                    </Typography>
+                                                </CardContent>
+                                            </CardActionArea>
+                                        </Card>
                                     ))}
                                 </Box>
                             </Grid>
-                            <Grid item xs={12}>
-                                <SimulationResults simulationRecords={selectedSimulations} small={true} />
+                            <Grid item xs={12} style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleConfirmComparison}
+                                    disabled={selectedSimulations.length === 0}
+                                    style={{ marginRight: 16 }}
+                                >
+                                    Confirm Comparison
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    onClick={handleClearSelections}
+                                >
+                                    Clear All Selections
+                                </Button>
                             </Grid>
+                            {showResults && (
+                                <Grid item xs={12}>
+                                    <Typography variant="h6" gutterBottom>
+                                        Selected Simulations
+                                    </Typography>
+                                    <Box style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                                        {confirmedSimulations.map((sim) => (
+                                            <Chip
+                                                key={sim.name}
+                                                label={`${sim.name} (${sim.group_id})`}
+                                                onDelete={() => handleSelectSimulation(sim)}
+                                                color="primary"
+                                            />
+                                        ))}
+                                    </Box>
+                                    <SimulationResults simulationRecords={confirmedSimulations} small={true} />
+                                </Grid>
+                            )}
                         </>
                     )}
                 </Grid>

@@ -26,10 +26,9 @@ export default function SimulationResults({ simulationRecords, small }) {
     const predictionPeriods = [1, 7, 30];
     const [predictionPeriod, setPredictionPeriod] = useState(predictionPeriods[0]);
     const [simulationResults, setSimulationResults] = useState([]);
-    const [simulationResultsDates, setSimulationResultsDates] = useState([]);
     const { isLoading, setisLoading } = useContext(LoaderContext);
 
-    const handleSimulate = useCallback(async () => {
+    const handleSimulate = () => {
         try {
             const groupedSimulationRecords = {};
             const groupIds = [];
@@ -71,30 +70,34 @@ export default function SimulationResults({ simulationRecords, small }) {
             });
 
             setSimulationResults(newSimulationResults);
-            setSimulationResultsDates(newSimulationResultsDates);
         } finally {
-            setisLoading(false);
+            setTimeout(() => {
+                setisLoading(false);
+            }, 300)
         }
-    }, [simulationRecords, predictionPeriod, setisLoading]);
+    }
 
-    const debouncedHandleSimulate = useMemo(() => debounce(handleSimulate, 300), [handleSimulate]);
 
     useEffect(() => {
-        if (!simulationRecords.length) return;
+        if (!simulationRecords.length) {
+            return;
+        }
         setisLoading(true);
-        debouncedHandleSimulate();
-    }, [simulationRecords, predictionPeriod, debouncedHandleSimulate, setisLoading]);
+        handleSimulate();
+    }, [predictionPeriod, simulationRecords]);
 
     const processData = (results, key) => {
         return results.map((result, index) => ({
             label: `${key.replace(/([a-z])([A-Z])/g, '$1 $2')} (${result.group_id})`,
             data: result.dates.map((date, i) => ({ x: new Date(date), y: result[key][i] })),
-            borderColor: `hsl(${index * 60}, 100%, 50%)`,
-            backgroundColor: `hsla(${index * 60}, 100%, 50%, 0.6)`,
+            borderColor: `hsl(${index * 80}, 100%, 50%)`,
+            backgroundColor: `hsla(${index * 80}, 100%, 50%, 0.6)`,
             borderWidth: 1,
-            barThickness: 10, // Fixed bar thickness
-            maxBarThickness: 15, // Maximum bar thickness
-            minBarLength: 2 // Minimum bar length
+            barThickness: 10,
+            maxBarThickness: 15,
+            minBarLength: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
         }));
     };
 

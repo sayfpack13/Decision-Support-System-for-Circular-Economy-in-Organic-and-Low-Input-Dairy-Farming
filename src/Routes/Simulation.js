@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { Select, MenuItem, TextField, Button, FormControl, InputLabel, Grid, Typography, CircularProgress, Snackbar, Alert, Paper, InputAdornment, Divider } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import axios from 'axios';
@@ -23,13 +23,16 @@ export default function Simulation() {
   const { isLoading, setisLoading } = useContext(LoaderContext);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [selectedSimulationGroup, setselectedSimulationGroup] = useState('');
+  const [simulationGroups, setsimulationGroups] = useState([]);
+
   const [simulationRecord, setsimulationRecord] = useState(simulationRecordModel())
+  const simulationRecords = useMemo(() => [simulationRecord], [simulationRecord]);
   const [isSimulated, setisSimulated] = useState(false)
+  const [simulationGroup, setsimulationGroup] = useState('');
+  const [simulationName, setsimulationName] = useState("Simulation "+new Date().toISOString().split('T')[0])
 
 
-  const [selectedSimulationGroup, setselectedSimulationGroup] = useState(''); // State for selected group
-  const [simulationGroup, setsimulationGroup] = useState(''); // State for new group input
-  const [simulationGroups, setsimulationGroups] = useState([]); // Initial groups fetched from local storage
 
 
   useEffect(() => {
@@ -111,10 +114,12 @@ export default function Simulation() {
 
 
   const handleSave = () => {
-    // Save to local storage or a backend service
-    const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
+    const tmp_simulationRecord = simulationRecord
+    tmp_simulationRecord.name = simulationName
+    tmp_simulationRecord.group_id = simulationGroup
 
-    localStorage.setItem('simulations', JSON.stringify([...simulations, simulationRecord]));
+    const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
+    localStorage.setItem('simulations', JSON.stringify([...simulations, tmp_simulationRecord]));
 
 
     setSnackbarMessage('Simulation saved successfully!');
@@ -473,7 +478,6 @@ export default function Simulation() {
                     value={selectedSimulationGroup}
                     onChange={(e) => {
                       setselectedSimulationGroup(e.target.value)
-                      setsimulationRecord({ ...simulationRecord, group_id: e.target.value })
                     }}
                     label="Group"
                   >
@@ -492,7 +496,6 @@ export default function Simulation() {
                     value={simulationGroup}
                     onChange={(e) => {
                       setsimulationGroup(e.target.value)
-                      setsimulationRecord({ ...simulationRecord, group_id: e.target.value })
                     }}
                     fullWidth
                     style={{ marginTop: 16 }}
@@ -501,14 +504,14 @@ export default function Simulation() {
                 <TextField
                   label="Simulation Name"
                   variant="outlined"
-                  value={simulationRecord.name}
+                  value={simulationName}
                   onChange={(e) => {
-                    setsimulationRecord({ ...simulationRecord, name: e.target.value })
+                    setsimulationName(e.target.value)
                   }}
                   fullWidth
                   style={{ marginTop: 16 }}
                 />
-                <Button variant="contained" color="secondary" disabled={!selectedSimulationGroup ||(!simulationGroup && selectedSimulationGroup==="create-new")} onClick={handleSave} style={{ marginTop: 5 }}>
+                <Button variant="contained" color="secondary" disabled={!selectedSimulationGroup || (!simulationGroup && selectedSimulationGroup === "create-new")} onClick={handleSave} style={{ marginTop: 5 }}>
                   Save Simulation
                 </Button>
               </Grid>
@@ -518,7 +521,7 @@ export default function Simulation() {
           </Grid>
         </Grid>
       </Paper>
-      {isSimulated && <SimulationResults simulationRecords={[simulationRecord]} small={false} />}
+      {isSimulated && <SimulationResults simulationRecords={simulationRecords} small={false} />}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="success">
           {snackbarMessage}
