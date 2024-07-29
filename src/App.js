@@ -5,7 +5,7 @@ import Home from "./Routes/Home"
 import Simulation from "./Routes/Simulation"
 import Header from "./Header"
 import Loader from "./Loader"
-import SimulationSaves from "./Routes/SimulationSaves"
+import Statistics from "./Routes/Statistics"
 
 
 
@@ -19,7 +19,7 @@ export default function App() {
                 <Routes>
                     <Route index Component={Home}></Route>
                     <Route path="/simulation" Component={Simulation}></Route>
-                    <Route path="/simulation-saves" element={<SimulationSaves />} />
+                    <Route path="/statistics" element={<Statistics />} />
                 </Routes>
             </Loader>
         </BrowserRouter>

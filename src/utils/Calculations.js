@@ -95,10 +95,7 @@ export const simulateResult = (simulationRecord = simulationRecordModel(), predi
         };
     });
 
-    // Aggregate total values
-    const totalForageProduction = dailyTotals.reduce((sum, day) => sum + parseFloat(day.dailyForageProduction), 0).toFixed(2);
-    const totalFeedNeeds = dailyTotals.reduce((sum, day) => sum + parseFloat(day.dailyFeedNeeds), 0).toFixed(2);
-    const forageSurplus = (totalForageProduction - totalFeedNeeds).toFixed(2);
+
 
     // Generate recommendations for each day
     const recommendations = dailyTotals.map((day) => {

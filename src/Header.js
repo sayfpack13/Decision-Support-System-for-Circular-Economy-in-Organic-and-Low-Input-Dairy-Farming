@@ -34,10 +34,10 @@ export default function Header() {
                             <a href="#nav-link" className="nav-link">Simulation</a>
                         </li>
                         <li
-                            onClick={() => handleNavigation("/simulation-saves")}
-                            className={location.pathname === "/simulation-saves" ? "nav-item active" : "nav-item"}
+                            onClick={() => handleNavigation("/statistics")}
+                            className={location.pathname === "/statistics" ? "nav-item active" : "nav-item"}
                         >
-                            <a href="#nav-link" className="nav-link">Simulation Saves</a>
+                            <a href="#nav-link" className="nav-link">Statistics</a>
                         </li>
                     </ul>
                 </nav>

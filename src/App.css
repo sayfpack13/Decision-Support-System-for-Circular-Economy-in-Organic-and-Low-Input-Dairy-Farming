@@ -5,7 +5,7 @@ body {
 
 
 .header-container {
-    position: fixed;
+    position: relative;
     right: 0;
     left: 0;
     top: 0;
@@ -18,7 +18,7 @@ body {
     justify-content: space-between;
     background-color: #2c3e50;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 10px;
+    padding: 1%;
 }
 
 .header .title {
@@ -105,7 +105,68 @@ body {
 
 
 .container {
-    margin-top: 60px;
-    padding: 0 10% 10% 10%;
     background-color: rgba(249, 249, 249, 1);
+}
+
+
+
+
+.simulation-result {
+    padding: 2%;
+    margin: 1%;
+    box-shadow: 1px 1px 20px 1px #000;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.statistics {
+    display: flex;
+}
+
+
+.statistics-body {
+    width: -webkit-fill-available;
+    height: 85vh;
+    /* Set a height for the scrollable area */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    overflow-x: hidden;
+    /* Hide horizontal scrolling if any */
+
+    transition: 0.5s;
+}
+
+.statistics-body.open {
+    margin-left: 25%;
+    transition: 0.2s;
+}
+
+
+.statistics-drawer {
+    width: 0%;
+    margin-left: -25%;
+
+    position: absolute;
+    background-color: #ecf0f1;
+
+    height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    transition: 0.5s;
+}
+
+.statistics-drawer.open {
+    width: 25%;
+    margin-left: 0;
+    transition: 0.2s;
+}
+
+
+
+.statistics-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 3% 3%;
 }

@@ -215,7 +215,7 @@ export default function SimulationResults({ simulationRecords, small }) {
     };
 
     return (
-        <Paper elevation={3} style={{ padding: 16 }}>
+        <div className='simulation-result'>
             <Typography variant="h5" gutterBottom>
                 Simulation Results
             </Typography>
@@ -270,6 +270,6 @@ export default function SimulationResults({ simulationRecords, small }) {
                     <Line data={dataSurplus} options={chartOptions} />
                 </Grid>
             </Grid>
-        </Paper>
+        </div>
     );
 }

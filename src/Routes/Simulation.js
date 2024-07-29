@@ -116,7 +116,7 @@ export default function Simulation() {
   const handleSave = () => {
     const tmp_simulationRecord = simulationRecord
     tmp_simulationRecord.name = simulationName
-    tmp_simulationRecord.group_id = simulationGroup
+    tmp_simulationRecord.group_id = selectedSimulationGroup =="create-new" ? simulationGroup : selectedSimulationGroup
 
     const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
     localStorage.setItem('simulations', JSON.stringify([...simulations, tmp_simulationRecord]));
@@ -153,7 +153,7 @@ export default function Simulation() {
           <Grid item xs={12}>
             <Typography variant="subtitle1">Select Location</Typography>
             {coordinates.lat && coordinates.lon && (
-              <MapContainer center={[coordinates.lat, coordinates.lon]} zoom={13} style={{ height: '300px' }}>
+              <MapContainer center={[coordinates.lat, coordinates.lon]} zoom={13} style={{ height: '50vh' }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={[coordinates.lat, coordinates.lon]}>
                   <Popup>Selected Location</Popup>
