@@ -287,7 +287,7 @@ export default function SimulationResults({ simulationRecords, small }) {
                     <Grid item xs={12}>
                         <div className='cards'>
                             <Card className='card'>
-                                <CardHeader className='card-title' title="Mean Forage Production"></CardHeader>
+                                <CardHeader className='card-title' title="Mean Forage Production (Daily)"></CardHeader>
                                 <Divider />
                                 <CardContent className='card-content'>
                                     {simulationResults.map((sim, index) => (
@@ -298,7 +298,7 @@ export default function SimulationResults({ simulationRecords, small }) {
                                 </CardContent>
                             </Card>
                             <Card className='card'>
-                                <CardHeader className='card-title' title="Mean Feed Needs"></CardHeader>
+                                <CardHeader className='card-title' title="Mean Feed Needs (Daily)"></CardHeader>
                                 <Divider />
                                 <CardContent className='card-content'>
                                     {simulationResults.map((sim, index) => (
@@ -324,7 +324,7 @@ export default function SimulationResults({ simulationRecords, small }) {
                     </Grid>
                     <Grid item xs={12}>
                         <Card className='card'>
-                            <CardHeader className='card-title' title="Mean Forage Surplus"></CardHeader>
+                            <CardHeader className='card-title' title="Mean Forage Surplus (Daily)"></CardHeader>
                             <Divider />
                             <CardContent className='card-content'>
                                 {simulationResults.map((sim, index) => (

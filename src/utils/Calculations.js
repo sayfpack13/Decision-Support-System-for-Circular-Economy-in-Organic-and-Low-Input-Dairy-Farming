@@ -9,6 +9,7 @@ const HUMIDITY_FACTOR = 0.3; // Humidity sensitivity factor
 const RADIATION_FACTOR = 0.2; // Radiation sensitivity factor
 
 
+
 export const calculateSolarRadiationHargreaves = (tempMin, tempMax, sunrise, sunset) => {
     tempMin -= tempMax === tempMin ? 10 : 0;
 
@@ -19,30 +20,34 @@ export const calculateSolarRadiationHargreaves = (tempMin, tempMax, sunrise, sun
     return K * Math.pow((tempMax - tempMin), 0.5) * (tempMean + 17.8) * daylightDurationHours;
 };
 
-
+// Updated calculation functions
 export const calculateForageYield = (days, weather, soilParams, forageData) => {
-    const { temperature, humidity, radiation } = weather;
+    const { temperature, humidity, precipitation, radiation } = weather;
     const soilRetention = parseFloat(soilParams.waterRetention) || 0.2; // FAO-56
     const growthRate = calculateGrowthRate(weather, soilParams);
 
     const arableArea = parseFloat(forageData.arableArea) || 1; // in hectares
+    const grasslandArea = parseFloat(forageData.grasslandArea) || 1; // in hectares
 
-    // Ensure weather parameters are arrays for daily values
+    // update needed for forcast weather data
     const temperatures = Array.isArray(temperature) ? temperature : Array(days).fill(temperature);
     const humidities = Array.isArray(humidity) ? humidity : Array(days).fill(humidity);
+    const precipitations = Array.isArray(precipitation) ? precipitation : Array(days).fill(precipitation);
     const radiations = Array.isArray(radiation) ? radiation : Array(days).fill(radiation);
 
     return Array.from({ length: days }, (_, i) => {
         const temp = temperatures[i];
         const hum = humidities[i];
+        const precip = precipitations[i];
         const rad = radiations[i];
 
         // Calculate daily forage yield based on cumulative factors
         const tempEffect = (temp > BASE_TEMP && temp < MAX_TEMP) ? TEMP_FACTOR * (temp - BASE_TEMP) : 0;
         const humidityEffect = HUMIDITY_FACTOR * (100 - hum);
+        const precipitationEffect = 0.1 * precip; // Example effect of precipitation
         const radiationEffect = RADIATION_FACTOR * rad;
 
-        const dailyYield = arableArea * (tempEffect + humidityEffect + radiationEffect - soilRetention) * Math.pow(growthRate, i + 1);
+        const dailyYield = (arableArea + grasslandArea) * (tempEffect + humidityEffect + precipitationEffect + radiationEffect - soilRetention) * Math.pow(growthRate, i + 1);
 
         return dailyYield; // in kilograms
     });
@@ -51,12 +56,27 @@ export const calculateForageYield = (days, weather, soilParams, forageData) => {
 export const calculateFeedNeeds = (days, herdProperties) => {
     const milkProductionPerCow = parseFloat(herdProperties.milkProduction) || 20;
     const herdSize = parseInt(herdProperties.herdSize) || 50;
+    const weight = parseFloat(herdProperties.weight) || 650;
+    const fatContent = parseFloat(herdProperties.fatContent) || 3.8;
+    const proteinContent = parseFloat(herdProperties.proteinContent) || 3.2;
     const ageFactor = herdProperties.age > 5 ? 0.9 : 1;
-    const healthFactor = herdProperties.healthStatus === 'Sick' ? 1.2 : 1;
-    const supplementFactor = herdProperties.feedSupplements === 'Protein Supplement' ? 0.9 : 1;
 
-    const energyPerCow = milkProductionPerCow * 0.3 * ageFactor * healthFactor * supplementFactor;
-    const proteinPerCow = milkProductionPerCow * 0.15 * ageFactor * healthFactor * supplementFactor;
+    // Adjust factor based on breed
+    const breedFactor = {
+        'Holstein': 1.2,
+        'Jersey': 1.1,
+        'Guernsey': 1.05,
+        'Ayrshire': 1
+    }[herdProperties.breed] || 1;
+
+    // Adjust health and supplement factors
+    const healthFactor = herdProperties.healthStatus === 'Sick' ? 1.3 :
+        herdProperties.healthStatus === 'Recovering' ? 1.1 : 1;
+    const supplementFactor = herdProperties.feedSupplement === 'Protein Supplement' ? 1.2 :
+        herdProperties.feedSupplement === 'Vitamin Supplement' ? 1.05 : 1;
+
+    const energyPerCow = milkProductionPerCow * 0.3 * ageFactor * healthFactor * supplementFactor * breedFactor;
+    const proteinPerCow = milkProductionPerCow * 0.15 * ageFactor * healthFactor * supplementFactor * breedFactor;
 
     return Array.from({ length: days }, () => ({
         energy: (energyPerCow * herdSize), // Kilograms
@@ -66,7 +86,7 @@ export const calculateFeedNeeds = (days, herdProperties) => {
 
 export const calculateGrowthRate = (weather, soilParams) => {
     const { temperature, radiation } = weather;
-    const { waterRetention, nutrientContent } = soilParams;
+    const { waterRetention, nutrientContent, soilType } = soilParams;
 
     let growthRate = 1.05; // Base growth rate
 
@@ -98,16 +118,23 @@ export const calculateGrowthRate = (weather, soilParams) => {
         growthRate -= 0.01;
     }
 
+    // Adjust growth rate based on soil type (example)
+    if (soilType === 'Peat') {
+        growthRate += 0.02;
+    } else if (soilType === 'Clay Loam') {
+        growthRate -= 0.02;
+    }
+
     return growthRate;
 };
 
-
+// Recommendations should also consider additional parameters
 export const getRecommendation = (simulationResult) => {
-    const { 
-        meanForageSurplus, 
-        meanForageProduction, 
-        meanFeedNeeds, 
-        simulationRecords 
+    const {
+        meanForageSurplus,
+        meanForageProduction,
+        meanFeedNeeds,
+        simulationRecords
     } = simulationResult;
 
     let recommendation = '';
@@ -132,9 +159,10 @@ export const getRecommendation = (simulationResult) => {
     // Aggregate weather and soil recommendations from all records
     let hasHighTemp = false, hasHighHumidity = false, hasLowRadiation = false;
     let hasLowWaterRetention = false, hasLowNutrients = false;
+    let hasPeatSoil = false;
 
     simulationRecords.forEach(record => {
-        const { weather, soilParams } = record;
+        const { weather, soilParams, herdProperties } = record;
         if (weather) {
             if (weather.temperature > 30) hasHighTemp = true;
             if (weather.humidity > 80) hasHighHumidity = true;
@@ -143,6 +171,13 @@ export const getRecommendation = (simulationResult) => {
         if (soilParams) {
             if (soilParams.waterRetention < 0.2) hasLowWaterRetention = true;
             if (soilParams.nutrientContent === 'Low') hasLowNutrients = true;
+            if (soilParams.soilType === 'Peat') hasPeatSoil = true;
+        }
+        if (herdProperties) {
+            if (herdProperties.healthStatus === 'Sick') recommendation += 'Address health issues immediately. ';
+            if (herdProperties.feedSupplement === 'Protein Supplement') recommendation += 'Ensure sufficient protein in the diet. ';
+            if (herdProperties.breed === 'Holstein') recommendation += 'Ensure high energy feed for Holsteins. ';
+            if (herdProperties.breed === 'Jersey') recommendation += 'Balance feed for Jersey’s high butterfat milk. ';
         }
     });
 
@@ -154,16 +189,18 @@ export const getRecommendation = (simulationResult) => {
     // Soil parameters
     if (hasLowWaterRetention) recommendation += 'Improve soil moisture management. ';
     if (hasLowNutrients) recommendation += 'Apply additional fertilizers. ';
+    if (hasPeatSoil) recommendation += 'Manage soil pH and nutrient levels for peat soil. ';
 
     return recommendation;
 };
+
 
 
 export const simulateResult = (simulationRecord = simulationRecordModel(), predictionPeriod = 1) => {
     const forageYield = calculateForageYield(predictionPeriod, simulationRecord.weather, simulationRecord.soilParams, simulationRecord.forageData);
     const feedNeeds = calculateFeedNeeds(predictionPeriod, simulationRecord.herdProperties);
 
-    
+
     const startDate = simulationRecord.date;
     const dates = Array.from({ length: predictionPeriod }, (_, i) => {
         const date = new Date(startDate);

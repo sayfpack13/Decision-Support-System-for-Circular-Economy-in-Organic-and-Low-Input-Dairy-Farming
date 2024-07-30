@@ -57,15 +57,15 @@ const breeds = ['Holstein', 'Jersey', 'Guernsey', 'Ayrshire'];
 
 export const herdModel = (
     breed = breeds[0],
-    weight = 500,
+    weight = 650,
     calvingInterval = 365,
     milkProduction = 25,
-    fatContent = 4.0,
-    proteinContent = 3.5,
+    fatContent = 3.8,
+    proteinContent = 3.2,
     age = 3,
     healthStatus = healthStatuses[0],
     feedSupplement = feedSupplements[0],
-    herdSize = 50
+    herdSize = 10
 ) => {
 
     return {
