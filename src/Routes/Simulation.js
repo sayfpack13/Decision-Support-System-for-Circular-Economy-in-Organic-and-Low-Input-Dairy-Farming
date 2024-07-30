@@ -1,18 +1,43 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { Select, MenuItem, TextField, Button, FormControl, InputLabel, Grid, Typography, CircularProgress, Snackbar, Alert, Paper, InputAdornment, Divider } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import SimulationResults from '../Components/SimulationResults';
-import { LoaderContext } from '../Loader';
-import { useNavigate } from 'react-router-dom';
+import { LoaderContext } from '../Components/Loader';
 import { coordinatesModel, forageModel, herdModel, simulationRecordModel, soilModel, weatherModel } from '../utils/InputModels';
-
+import mapMarker from "../Assets/marker.png"
+import L, { latLng, latLngBounds } from "leaflet"
+import { calculateSolarRadiationHargreaves } from '../utils/Calculations';
+import FlagIcon from '@mui/icons-material/Flag';
+import CloudIcon from '@mui/icons-material/Cloud';
+import PetsIcon from '@mui/icons-material/Pets';
+import ScaleIcon from '@mui/icons-material/Scale';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import AirIcon from '@mui/icons-material/Air';
+import ThunderstormIcon from '@mui/icons-material/Thunderstorm';
+import CrisisAlertIcon from '@mui/icons-material/CrisisAlert';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import WaterIcon from '@mui/icons-material/Water';
+import TransgenderIcon from '@mui/icons-material/Transgender';
+import SpaIcon from '@mui/icons-material/Spa';
+import MarginIcon from '@mui/icons-material/Margin';
+import CopyAllIcon from '@mui/icons-material/CopyAll';
+import GrassIcon from '@mui/icons-material/Grass';
+import OpacityIcon from '@mui/icons-material/Opacity';
+import InvertColorsIcon from '@mui/icons-material/InvertColors';
+import WatchLaterIcon from '@mui/icons-material/WatchLater';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import YardIcon from '@mui/icons-material/Yard';
+import FenceIcon from '@mui/icons-material/Fence';
+import LandscapeIcon from '@mui/icons-material/Landscape';
+import ShareLocationIcon from '@mui/icons-material/ShareLocation';
+import BiotechIcon from '@mui/icons-material/Biotech';
 
 export default function Simulation() {
-  const navigate = useNavigate();
 
   // Data Models
+  const [isWeatherDataExist, setisWeatherDataExist] = useState(true)
   const [coordinates, setCoordinates] = useState(coordinatesModel(null, null));
   const [weather, setWeather] = useState(weatherModel());
   const [soilParams, setSoilParams] = useState(soilModel);
@@ -30,8 +55,18 @@ export default function Simulation() {
   const simulationRecords = useMemo(() => [simulationRecord], [simulationRecord]);
   const [isSimulated, setisSimulated] = useState(false)
   const [simulationGroup, setsimulationGroup] = useState('');
-  const [simulationName, setsimulationName] = useState("Simulation "+new Date().toISOString().split('T')[0])
+  const [simulationName, setsimulationName] = useState("Simulation " + new Date().toISOString().split('T')[0])
 
+
+
+
+  const mapMarkerRef = useRef()
+  const customIcon = L.icon({
+    iconUrl: mapMarker,
+    iconSize: [50, 50],
+    iconAnchor: [25, 50],
+    popupAnchor: [0, -50]
+  });
 
 
 
@@ -64,28 +99,33 @@ export default function Simulation() {
     setsimulationGroups(existingGroups);
   }, []);
 
+
   const fetchWeatherData = async (lat, lon) => {
-    const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY; // Replace with your API key
+    const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
     try {
       const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`);
-      const { main, weather } = response.data;
+      const { main, weather, sys } = response.data;
       const temperature = main.temp;
       const humidity = main.humidity;
       const description = weather[0].description
       const precipitation = description.includes('rain') ? '5' : '0'; // Simplified assumption
-      const radiation = 15; // Placeholder value, actual value needs a different source
+      const radiation = calculateSolarRadiationHargreaves(main.temp_min, main.temp_max, sys.sunrise, sys.sunset)
+      const country = sys.country
+
 
       setWeather({
         temperature,
         humidity,
         precipitation,
         radiation,
-        description
+        description,
+        country
       });
+      setisWeatherDataExist(true)
     } catch (error) {
-      console.error("Error fetching weather data", error);
-      alert('Error fetching weather data. Please try again.');
+      setisWeatherDataExist(false)
     } finally {
+      mapMarkerRef.current.toggle()
       setisLoading(false);
     }
   };
@@ -116,7 +156,7 @@ export default function Simulation() {
   const handleSave = () => {
     const tmp_simulationRecord = simulationRecord
     tmp_simulationRecord.name = simulationName
-    tmp_simulationRecord.group_id = selectedSimulationGroup =="create-new" ? simulationGroup : selectedSimulationGroup
+    tmp_simulationRecord.group_id = selectedSimulationGroup == "create-new" ? simulationGroup : selectedSimulationGroup
 
     const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
     localStorage.setItem('simulations', JSON.stringify([...simulations, tmp_simulationRecord]));
@@ -153,10 +193,10 @@ export default function Simulation() {
           <Grid item xs={12}>
             <Typography variant="subtitle1">Select Location</Typography>
             {coordinates.lat && coordinates.lon && (
-              <MapContainer center={[coordinates.lat, coordinates.lon]} zoom={13} style={{ height: '50vh' }}>
+              <MapContainer maxBounds={latLngBounds = [[[-90, -180]], [[90, 180]]]} minZoom={3} center={[coordinates.lat, coordinates.lon]} zoom={13} style={{ height: '50vh' }}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[coordinates.lat, coordinates.lon]}>
-                  <Popup>Selected Location</Popup>
+                <Marker icon={customIcon} position={[coordinates.lat, coordinates.lon]}>
+                  <Popup ref={mapMarkerRef}>{isWeatherDataExist ? "Weather Data available !!" : "No Data available"}</Popup>
                 </Marker>
                 <Map setCoordinates={setCoordinates} />
               </MapContainer>
@@ -174,7 +214,7 @@ export default function Simulation() {
                   value={weather.temperature}
                   fullWidth
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">°C</InputAdornment>
+                    endAdornment: <InputAdornment position="end"><ThermostatIcon />°C</InputAdornment>
                   }}
                 />
               </Grid>
@@ -187,7 +227,7 @@ export default function Simulation() {
                   value={weather.humidity}
                   fullWidth
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">%</InputAdornment>
+                    endAdornment: <InputAdornment position="end"><AirIcon />%</InputAdornment>
                   }}
                 />
               </Grid>
@@ -200,7 +240,7 @@ export default function Simulation() {
                   value={weather.precipitation}
                   fullWidth
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">mm</InputAdornment>
+                    endAdornment: <InputAdornment position="end"><WaterDropIcon />mm</InputAdornment>
                   }}
                 />
               </Grid>
@@ -210,10 +250,10 @@ export default function Simulation() {
                   variant="outlined"
                   onChange={(e) => setWeather({ ...weather, radiation: e.target.value })}
                   type="number"
-                  value={weather.radiation}
+                  value={weather.radiation.toFixed(2)}
                   fullWidth
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">MJ/m²</InputAdornment>
+                    endAdornment: <InputAdornment position="end"><CrisisAlertIcon />MJ/m²</InputAdornment>
                   }}
                 />
               </Grid>
@@ -221,12 +261,25 @@ export default function Simulation() {
                 <TextField
                   label="Description"
                   variant="outlined"
-                  onChange={(e) => setWeather({ ...weather, description: e.target.value })}
                   type="text"
                   value={weather.description}
                   fullWidth
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">Now</InputAdornment>
+                    readOnly: true,
+                    endAdornment: <InputAdornment position="end"><CloudIcon /></InputAdornment>
+                  }}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="Country"
+                  variant="outlined"
+                  type="text"
+                  value={weather.country}
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                    endAdornment: <InputAdornment position="end"><FlagIcon /></InputAdornment>
                   }}
                 />
               </Grid>
@@ -239,6 +292,7 @@ export default function Simulation() {
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Soil Type</InputLabel>
                   <Select
+                    IconComponent={GrassIcon}
                     value={soilParams.soilType}
                     onChange={(e) => setSoilParams({ ...soilParams, soilType: e.target.value })}
                     label="Soil Type"
@@ -258,7 +312,7 @@ export default function Simulation() {
                   value={soilParams.waterRetention}
                   onChange={(e) => setSoilParams({ ...soilParams, waterRetention: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><WaterIcon />%</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -266,6 +320,7 @@ export default function Simulation() {
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Nutrient Content</InputLabel>
                   <Select
+                    IconComponent={SpaIcon}
                     value={soilParams.nutrientContent}
                     onChange={(e) => setSoilParams({ ...soilParams, nutrientContent: e.target.value })}
                     label="Nutrient Content"
@@ -290,7 +345,7 @@ export default function Simulation() {
                   value={herdProperties.herdSize}
                   onChange={(e) => setHerdProperties({ ...herdProperties, herdSize: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">head</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><PetsIcon /></InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -298,6 +353,7 @@ export default function Simulation() {
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Breed</InputLabel>
                   <Select
+                    IconComponent={TransgenderIcon}
                     value={herdProperties.breed}
                     onChange={(e) => setHerdProperties({ ...herdProperties, breed: e.target.value })}
                     label="Breed"
@@ -317,7 +373,7 @@ export default function Simulation() {
                   value={herdProperties.weight}
                   onChange={(e) => setHerdProperties({ ...herdProperties, weight: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">kg</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><ScaleIcon /> kg</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -328,7 +384,7 @@ export default function Simulation() {
                   value={herdProperties.calvingInterval}
                   onChange={(e) => setHerdProperties({ ...herdProperties, calvingInterval: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">days</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><MarginIcon />days</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -339,7 +395,7 @@ export default function Simulation() {
                   value={herdProperties.milkProduction}
                   onChange={(e) => setHerdProperties({ ...herdProperties, milkProduction: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">liters/day</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><OpacityIcon />liters/day</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -350,7 +406,7 @@ export default function Simulation() {
                   value={herdProperties.fatContent}
                   onChange={(e) => setHerdProperties({ ...herdProperties, fatContent: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><WaterDropIcon />%</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -361,7 +417,7 @@ export default function Simulation() {
                   value={herdProperties.proteinContent}
                   onChange={(e) => setHerdProperties({ ...herdProperties, proteinContent: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><InvertColorsIcon />%</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -372,7 +428,7 @@ export default function Simulation() {
                   value={herdProperties.age}
                   onChange={(e) => setHerdProperties({ ...herdProperties, age: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">years</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><WatchLaterIcon />years</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -380,6 +436,7 @@ export default function Simulation() {
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Health Status</InputLabel>
                   <Select
+                    IconComponent={MonitorHeartIcon}
                     value={herdProperties.healthStatus}
                     onChange={(e) => setHerdProperties({ ...herdProperties, healthStatus: e.target.value })}
                     label="Health Status"
@@ -396,6 +453,7 @@ export default function Simulation() {
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Feed Supplements</InputLabel>
                   <Select
+                    IconComponent={YardIcon}
                     value={herdProperties.feedSupplement}
                     onChange={(e) => setHerdProperties({ ...herdProperties, feedSupplement: e.target.value })}
                     label="Feed Supplements"
@@ -420,7 +478,7 @@ export default function Simulation() {
                   value={forageData.arableArea}
                   onChange={(e) => setForageData({ ...forageData, arableArea: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">ha</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><FenceIcon />ha</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -431,7 +489,7 @@ export default function Simulation() {
                   value={forageData.grasslandArea}
                   onChange={(e) => setForageData({ ...forageData, grasslandArea: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">ha</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><LandscapeIcon />ha</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -442,7 +500,7 @@ export default function Simulation() {
                   value={forageData.legumeShare}
                   onChange={(e) => setForageData({ ...forageData, legumeShare: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><ShareLocationIcon />%</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -453,7 +511,7 @@ export default function Simulation() {
                   value={forageData.nitrogenInput}
                   onChange={(e) => setForageData({ ...forageData, nitrogenInput: e.target.value })}
                   type="number"
-                  InputProps={{ endAdornment: <InputAdornment position="end">kg/ha</InputAdornment> }}
+                  InputProps={{ endAdornment: <InputAdornment position="end"><BiotechIcon />kg/ha</InputAdornment> }}
                   fullWidth
                 />
               </Grid>
@@ -467,7 +525,7 @@ export default function Simulation() {
             textAlign: "center"
           }}>
             <Button variant="contained" color="primary" onClick={handleSubmit}>
-              Simulate
+              Run Simulation
             </Button>
             {isSimulated && (
               <Grid item xs={6} sm={3} style={{ marginTop: 10 }}>
@@ -522,8 +580,8 @@ export default function Simulation() {
         </Grid>
       </Paper>
       {isSimulated && <SimulationResults simulationRecords={simulationRecords} small={false} />}
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="success">
+      <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="success" variant='filled' style={{position:"fixed",top:"90%",left:"50%",transform:"translate(-50%, -50%)",fontSize:"25px",display:"flex",alignItems:"center"}}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

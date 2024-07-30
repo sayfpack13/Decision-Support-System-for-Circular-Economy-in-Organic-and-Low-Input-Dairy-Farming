@@ -14,14 +14,16 @@ export const weatherModel = (
     humidity = 20,
     precipitation = 5,
     radiation = 15,
-    description = "rain"
+    description = "rain",
+    country="TN"
 ) => {
     return {
         temperature,
         humidity,
         precipitation,
         radiation,
-        description
+        description,
+        country
     }
 }
 
@@ -139,10 +141,13 @@ export const simulationResultModel = (
     dates = [],
     forageYield = [],
     feedNeeds = [],
-    totalForageProduction = [],
-    totalFeedNeeds = [],
-    forageSurplus = [],
-    recommendations = []
+    dailyForageProduction = [],
+    dailyFeedNeeds = [],
+    dailyForageSurplus = [],
+    meanForageProduction=0,
+    meanFeedNeeds=0,
+    meanForageSurplus=0,
+    recommendation = ""
 ) => {
     return {
         simulationRecords,
@@ -150,9 +155,12 @@ export const simulationResultModel = (
         dates,
         forageYield,
         feedNeeds,
-        totalForageProduction,
-        totalFeedNeeds,
-        forageSurplus,
-        recommendations
+        dailyForageProduction,
+        dailyFeedNeeds,
+        dailyForageSurplus,
+        meanForageProduction,
+        meanFeedNeeds,
+        meanForageSurplus,
+        recommendation
     }
 }

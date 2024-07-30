@@ -5,7 +5,7 @@ import {
     IconButton, Toolbar, AppBar, Divider, TablePagination, TextField, Checkbox, Chip,
     InputBase
 } from '@mui/material';
-import { LoaderContext } from '../Loader';
+import { LoaderContext } from '../Components/Loader';
 import SimulationResults from '../Components/SimulationResults';
 import { Menu as MenuIcon, MenuOpen as MenuOpenIcon, Close as CloseIcon } from '@mui/icons-material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -342,7 +342,7 @@ export default function Statistics() {
                                         onClick={handleConfirmComparison}
                                         disabled={selectedSimulations.length === 0}
                                     >
-                                        Confirm Comparison
+                                        Run Simulation(s)
                                     </Button>
                                 </Grid>
                                 <Grid item>

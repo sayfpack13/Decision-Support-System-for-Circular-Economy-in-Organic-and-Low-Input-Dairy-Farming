@@ -1,10 +1,10 @@
 
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import "./App.css"
+import "./Assets/App.css"
 import Home from "./Routes/Home"
 import Simulation from "./Routes/Simulation"
-import Header from "./Header"
-import Loader from "./Loader"
+import Header from "./Components/Header"
+import Loader from "./Components/Loader"
 import Statistics from "./Routes/Statistics"
 
 

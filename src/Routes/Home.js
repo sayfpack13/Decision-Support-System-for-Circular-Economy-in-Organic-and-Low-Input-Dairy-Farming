@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react"
-import { LoaderContext } from "../Loader"
+import { LoaderContext } from "../Components/Loader"
 
 export default function Home() {
     const {  setisLoading } = useContext(LoaderContext)

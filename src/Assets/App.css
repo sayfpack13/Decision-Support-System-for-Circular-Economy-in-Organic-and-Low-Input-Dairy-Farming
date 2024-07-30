@@ -127,24 +127,21 @@ body {
 .statistics-body {
     width: -webkit-fill-available;
     height: 85vh;
-    /* Set a height for the scrollable area */
     overflow-y: auto;
-    /* Enable vertical scrolling */
     overflow-x: hidden;
-    /* Hide horizontal scrolling if any */
 
     transition: 0.5s;
 }
 
 .statistics-body.open {
-    margin-left: 25%;
+    margin-left: 35%;
     transition: 0.2s;
 }
 
 
 .statistics-drawer {
     width: 0%;
-    margin-left: -25%;
+    margin-left: -35%;
 
     position: absolute;
     background-color: #ecf0f1;
@@ -157,7 +154,7 @@ body {
 }
 
 .statistics-drawer.open {
-    width: 25%;
+    width: 35%;
     margin-left: 0;
     transition: 0.2s;
 }
@@ -169,4 +166,89 @@ body {
     align-items: center;
     justify-content: space-between;
     margin: 3% 3%;
+}
+
+
+
+
+
+
+
+
+
+.cards {
+    display: flex;
+    align-items: center;
+}
+
+
+.card {
+    width: 25%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    box-shadow: 1px 1px 10px 1px #00000067 !important;
+}
+
+
+.card-title {
+    padding: 10px !important;
+}
+
+.card-title .MuiTypography-root {
+    font-size: 20px !important;
+}
+
+
+.card-content {
+    padding: 20px !important;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+
+
+.icon-bg {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.icon-bg .MuiSvgIcon-root {
+    font-size: 300px;
+    color: #2c3e50;
+}
+
+.icon-bg-content {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+
+.icon-bg-msg {
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+    color: #2c3e50;
+}
+
+
+.recommendations-container {
+    margin: 20px;
+}
+
+.recommendations-title {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.recommendation-list {
+    padding-left: 20px; /* Indent for list dots */
+}
+
+.recommendation-item {
+    display: list-item; /* Ensure items are displayed as list items */
 }

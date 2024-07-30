@@ -1,13 +1,15 @@
 import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, TimeScale } from 'chart.js';
-import { Paper, Typography, Grid, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Paper, Typography, Grid, Box, Select, MenuItem, FormControl, InputLabel, Card, CardHeader, CardContent, Divider, Icon } from '@mui/material';
 import { simulationResultModel } from '../utils/InputModels';
-import { simulateResult } from '../utils/Calculations';
-import { LoaderContext } from '../Loader';
+import { getRecommendation, simulateResult } from '../utils/Calculations';
+import { LoaderContext } from './Loader';
 import 'chartjs-adapter-date-fns';
-import debounce from 'lodash/debounce';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import FlutterDashIcon from '@mui/icons-material/FlutterDash';
+import { List, ListItem, ListItemText } from '@mui/material';
+
 
 ChartJS.register(
     CategoryScale,
@@ -23,7 +25,7 @@ ChartJS.register(
 );
 
 export default function SimulationResults({ simulationRecords, small }) {
-    const predictionPeriods = [1, 7, 30];
+    const predictionPeriods = Array.from({ length: 30 }, (_, i) => i + 1);
     const [predictionPeriod, setPredictionPeriod] = useState(predictionPeriods[0]);
     const [simulationResults, setSimulationResults] = useState([]);
     const { isLoading, setisLoading } = useContext(LoaderContext);
@@ -48,6 +50,7 @@ export default function SimulationResults({ simulationRecords, small }) {
                 const groupedSimulationRecord = groupedSimulationRecords[group_id];
                 groupedSimulationRecord.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+                // combining same group simulations
                 let combinedSimulationResult = simulationResultModel();
                 combinedSimulationResult.group_id = group_id;
 
@@ -59,11 +62,19 @@ export default function SimulationResults({ simulationRecords, small }) {
                     combinedSimulationResult.dates.push(...simulationResult.dates);
                     combinedSimulationResult.forageYield.push(...simulationResult.forageYield);
                     combinedSimulationResult.feedNeeds.push(...simulationResult.feedNeeds);
-                    combinedSimulationResult.totalForageProduction.push(...simulationResult.totalForageProduction);
-                    combinedSimulationResult.totalFeedNeeds.push(...simulationResult.totalFeedNeeds);
-                    combinedSimulationResult.forageSurplus.push(...simulationResult.forageSurplus);
-                    combinedSimulationResult.recommendations.push(...simulationResult.recommendations);
+                    combinedSimulationResult.dailyForageProduction.push(...simulationResult.dailyForageProduction);
+                    combinedSimulationResult.dailyFeedNeeds.push(...simulationResult.dailyFeedNeeds);
+                    combinedSimulationResult.dailyForageSurplus.push(...simulationResult.dailyForageSurplus);
+                    combinedSimulationResult.meanForageProduction += simulationResult.meanForageProduction;
+                    combinedSimulationResult.meanFeedNeeds += simulationResult.meanFeedNeeds;
+                    combinedSimulationResult.meanForageSurplus += simulationResult.meanForageSurplus;
                 });
+
+                // overall data
+                combinedSimulationResult.meanForageProduction /= groupedSimulationRecord.length
+                combinedSimulationResult.meanFeedNeeds /= groupedSimulationRecord.length
+                combinedSimulationResult.meanForageSurplus /= groupedSimulationRecord.length
+                combinedSimulationResult.recommendation = getRecommendation(combinedSimulationResult)
 
                 newSimulationResults.push(combinedSimulationResult);
                 newSimulationResultsDates.push(combinedSimulationResult.dates);
@@ -79,11 +90,12 @@ export default function SimulationResults({ simulationRecords, small }) {
 
 
     useEffect(() => {
-        if (!simulationRecords.length) {
-            return;
+        if (simulationRecords.length) {
+            setisLoading(true);
+            handleSimulate();
+        } else {
+            setSimulationResults([])
         }
-        setisLoading(true);
-        handleSimulate();
     }, [predictionPeriod, simulationRecords]);
 
     const processData = (results, key) => {
@@ -104,10 +116,10 @@ export default function SimulationResults({ simulationRecords, small }) {
     const processedDataForage = useMemo(() => processData(simulationResults, 'forageYield'), [simulationResults]);
     const processedDataFeedNeeds = useMemo(() => processData(simulationResults, 'feedNeeds'), [simulationResults]);
     const processedDataComparison = useMemo(() => [
-        ...processData(simulationResults, 'totalForageProduction'),
-        ...processData(simulationResults, 'totalFeedNeeds')
+        ...processData(simulationResults, 'dailyForageProduction'),
+        ...processData(simulationResults, 'dailyFeedNeeds')
     ], [simulationResults]);
-    const processedDataSurplus = useMemo(() => processData(simulationResults, 'forageSurplus'), [simulationResults]);
+    const processedDataSurplus = useMemo(() => processData(simulationResults, 'dailyForageSurplus'), [simulationResults]);
 
     const dataForage = useMemo(() => ({
         datasets: processedDataForage,
@@ -125,151 +137,227 @@ export default function SimulationResults({ simulationRecords, small }) {
         datasets: processedDataSurplus,
     }), [processedDataSurplus]);
 
-    const chartOptions = {
-        scales: {
-            x: {
-                type: 'time',
-                time: {
-                    unit: 'day',
-                    displayFormats: {
-                        day: 'MMM d, h:mm a'
+    const chartOptions = (title, xLabel, xUnit, yLabel, yUnit) => {
+        return {
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM d, h:mm a'
+                        },
+                        tooltipFormat: 'MMM d, yyyy, h:mm a'
                     },
-                    tooltipFormat: 'MMM d, yyyy, h:mm a'
+                    title: {
+                        display: true,
+                        text: xLabel,
+                        color: '#4a4a4a',
+                        font: {
+                            family: 'Arial',
+                            size: 14,
+                            weight: 'bold',
+                        }
+                    },
+                    ticks: {
+                        callback: xUnit && function (value) {
+                            return value + " " + xUnit
+                        },
+                        maxRotation: 45,
+                        minRotation: 0,
+                        color: '#4a4a4a',
+                        font: {
+                            family: 'Arial',
+                            size: 12,
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: yLabel,
+                        color: '#4a4a4a',
+                        font: {
+                            family: 'Arial',
+                            size: 14,
+                            weight: 'bold',
+                        }
+                    },
+                    ticks: {
+                        callback: yUnit && function (value) {
+                            return value + " " + yUnit
+                        },
+                        color: '#4a4a4a',
+                        font: {
+                            family: 'Arial',
+                            size: 12,
+                        }
+                    }
+                },
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#4a4a4a',
+                        font: {
+                            family: 'Arial',
+                            size: 12,
+                        }
+                    }
                 },
                 title: {
                     display: true,
-                    text: 'Date and Time',
+                    text: title,
                     color: '#4a4a4a',
                     font: {
                         family: 'Arial',
-                        size: 14,
+                        size: 16,
                         weight: 'bold',
                     }
-                },
-                ticks: {
-                    maxRotation: 45,
-                    minRotation: 0,
-                    color: '#4a4a4a',
-                    font: {
-                        family: 'Arial',
-                        size: 12,
-                    }
-                }
-            },
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Values (kg)',
-                    color: '#4a4a4a',
-                    font: {
-                        family: 'Arial',
-                        size: 14,
-                        weight: 'bold',
-                    }
-                },
-                ticks: {
-                    color: '#4a4a4a',
-                    font: {
-                        family: 'Arial',
-                        size: 12,
-                    }
-                }
-            },
-        },
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top',
-                labels: {
-                    color: '#4a4a4a',
-                    font: {
-                        family: 'Arial',
-                        size: 12,
-                    }
-                }
-            },
-            title: {
-                display: true,
-                text: 'Simulation Results',
-                color: '#4a4a4a',
-                font: {
-                    family: 'Arial',
-                    size: 16,
-                    weight: 'bold',
-                }
-            },
-            zoom: {
-                pan: {
-                    enabled: true,
-                    mode: 'x',
                 },
                 zoom: {
-                    wheel: {
+                    pan: {
                         enabled: true,
+                        mode: 'x',
                     },
-                    mode: 'x',
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        mode: 'x',
+                    },
                 },
             },
-        },
-    };
+        }
+    }
 
-    return (
-        <div className='simulation-result'>
-            <Typography variant="h5" gutterBottom>
-                Simulation Results
-            </Typography>
-            <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
-                <FormControl variant="outlined" style={{ width: "20%" }}>
-                    <InputLabel>Prediction Period</InputLabel>
-                    <Select
-                        value={predictionPeriod}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            if (predictionPeriods.includes(value)) {
-                                setPredictionPeriod(value);
-                            }
-                        }}
-                        label="Prediction Period"
-                    >
-                        {predictionPeriods.map((period, index) => (
-                            <MenuItem key={index} value={period}>
-                                {period} days
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Grid>
-            <Grid container spacing={3}>
-                <Grid item xs={12} md={small ? 12 : 6}>
-                    <Box mb={2}>
-                        <Typography variant="h6">Forage Production Over Time</Typography>
-                    </Box>
-                    <Line data={dataForage} options={chartOptions} />
+    if (simulationResults.length == 0) {
+        return (
+            <div className='icon-bg'>
+                <div className='icon-bg-content'>
+                    <FlutterDashIcon />
+                    <div className='icon-bg-msg'>Please select or run a simulation to view the results</div>
+                </div>
+            </div>
+        )
+    } else
+        return (
+            <div className='simulation-result'>
+                <Typography variant="h5" gutterBottom>
+                    Simulation Results
+                </Typography>
+                <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
+                    <FormControl variant="outlined" style={{ width: "20%" }}>
+                        <InputLabel>Prediction Period (from saved date)</InputLabel>
+                        <Select
+                            value={predictionPeriod}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (predictionPeriods.includes(value)) {
+                                    setPredictionPeriod(value);
+                                }
+                            }}
+                            label="Prediction Period"
+                        >
+                            {predictionPeriods.map((period, index) => (
+                                <MenuItem key={index} value={period}>
+                                    {period + (period == 1 ? " day" : " days")}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Grid>
-                <Grid item xs={12} md={small ? 12 : 6}>
-                    <Box mb={2}>
-                        <Typography variant="h6">Feed Needs Over Time</Typography>
-                    </Box>
-                    <Bar data={dataFeedNeeds} options={chartOptions} />
-                </Grid>
-                <Grid item xs={12} md={small ? 12 : 6}>
-                    <Box mb={2}>
-                        <Typography variant="h6">Comparison of Total Forage Production and Total Feed Needs</Typography>
-                    </Box>
-                    <div style={{ overflowX: 'auto' }}>
-                        <div style={{ minWidth: '1000px' }}>
-                            <Bar data={dataComparison} options={chartOptions} />
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={small ? 12 : 6}>
+                        <Box mb={2}>
+                            <Typography variant="h6">Forage Production Over Time</Typography>
+                        </Box>
+                        <Line data={dataForage} options={chartOptions("Forage Production Over Time", "Date", "", "Production", "Kg")} />
+                    </Grid>
+                    <Grid item xs={12} md={small ? 12 : 6}>
+                        <Box mb={2}>
+                            <Typography variant="h6">Feed Needs Over Time</Typography>
+                        </Box>
+                        <Line data={dataFeedNeeds} options={chartOptions("Feed Needs Over Time", "Date", "", "Needs", "Kg")} />
+
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div className='cards'>
+                            <Card className='card'>
+                                <CardHeader className='card-title' title="Mean Forage Production"></CardHeader>
+                                <Divider />
+                                <CardContent className='card-content'>
+                                    {simulationResults.map((sim, index) => (
+                                        <div key={index} style={{ color: `hsl(${index * 100}, 100%, 30%)` }}>
+                                            {sim.group_id}: {sim.meanForageProduction.toFixed(2)} Kg
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                            <Card className='card'>
+                                <CardHeader className='card-title' title="Mean Feed Needs"></CardHeader>
+                                <Divider />
+                                <CardContent className='card-content'>
+                                    {simulationResults.map((sim, index) => (
+                                        <div key={index} style={{ color: `hsl(${index * 100}, 100%, 30%)` }}>
+                                            {sim.group_id}: {sim.meanFeedNeeds.toFixed(2)} Kg
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
                         </div>
-                    </div>
+                    </Grid>
+                    <Grid item xs={12} md={small ? 12 : 6}>
+                        <Box mb={2}>
+                            <Typography variant="h6">Comparison of Total Forage Production and Total Feed Needs</Typography>
+                        </Box>
+                        <Bar data={dataComparison} options={chartOptions("Comparison of Total Forage Production and Total Feed Needs", "Date", "", "Production Vs Needs", "Kg")} />
+                    </Grid>
+                    <Grid item xs={12} md={small ? 12 : 6}>
+                        <Box mb={2}>
+                            <Typography variant="h6">Forage Surplus Over Time</Typography>
+                        </Box>
+                        <Bar data={dataSurplus} options={chartOptions("Forage Surplus Over Time", "Date", "", "Surplus", "Kg")} />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Card className='card'>
+                            <CardHeader className='card-title' title="Mean Forage Surplus"></CardHeader>
+                            <Divider />
+                            <CardContent className='card-content'>
+                                {simulationResults.map((sim, index) => (
+                                    <div key={index} style={{ color: `hsl(${index * 100}, 100%, 30%)` }}>
+                                        {sim.group_id}: {sim.meanForageSurplus.toFixed(2)} Kg
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div className='recommendations-container'>
+                            <Typography variant="h6" className='recommendations-title'>
+                                Recommendations
+                            </Typography>
+                            <List className='recommendation-list'>
+                                {simulationResults.map((sim, index) => (
+                                    <div key={index}>
+                                        <ListItem className='recommendation-item'>
+                                            <ListItemText
+                                                primary={<span style={{ color: `hsl(${index * 100}, 100%, 30%)` }}>{"● "+sim.group_id+":"}</span>}
+                                                secondary={sim.recommendation}
+                                                primaryTypographyProps={{ component: 'span', fontWeight: 'bold' }}
+                                                secondaryTypographyProps={{fontWeight:"bold"}}
+                                            />
+                                        </ListItem>
+                                        {index < simulationResults.length - 1 && <Divider />}
+                                    </div>
+                                ))}
+                            </List>
+                        </div>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} md={small ? 12 : 6}>
-                    <Box mb={2}>
-                        <Typography variant="h6">Forage Surplus Over Time</Typography>
-                    </Box>
-                    <Line data={dataSurplus} options={chartOptions} />
-                </Grid>
-            </Grid>
-        </div>
-    );
+            </div>
+        );
 }

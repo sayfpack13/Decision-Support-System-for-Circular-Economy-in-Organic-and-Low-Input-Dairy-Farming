@@ -1,17 +1,53 @@
 import { simulationRecordModel, simulationResultModel } from "./InputModels";
 
-// https://www.intechopen.com/chapters/62830
-export const calculateForageYield = (days, weather, soilParams, forageData) => {
-    const { temperature, humidity, radiation } = weather;
-    const soilRetention = parseFloat(soilParams.waterRetention) || 0.2;
-    const growthRate = calculateGrowthRate(weather, soilParams);
+// Constants for the Hargreaves-Samani Model
+const K = 0.0023; // Empirical constant for solar radiation
+const BASE_TEMP = 10; // Base temperature for growth in Celsius
+const MAX_TEMP = 30; // Maximum temperature for optimal growth in Celsius
+const TEMP_FACTOR = 0.5; // Temperature sensitivity factor
+const HUMIDITY_FACTOR = 0.3; // Humidity sensitivity factor
+const RADIATION_FACTOR = 0.2; // Radiation sensitivity factor
 
-    return Array.from({ length: days }, (_, i) => (
-        ((parseFloat(forageData.arableArea) || 1) * (0.5 * (temperature - 10) + (0.3 * (100 - humidity)) + (0.2 * radiation) - soilRetention) * Math.pow(growthRate, i + 1))
-    ).toFixed(2)); // Return in kilograms
+
+export const calculateSolarRadiationHargreaves = (tempMin, tempMax, sunrise, sunset) => {
+    tempMin -= tempMax === tempMin ? 10 : 0;
+
+    const daylightDurationHours = Math.abs(sunset - sunrise) / 3600;
+
+    const tempMean = (tempMax + tempMin) / 2;
+
+    return K * Math.pow((tempMax - tempMin), 0.5) * (tempMean + 17.8) * daylightDurationHours;
 };
 
-// https://www.intechopen.com/chapters/62830
+
+export const calculateForageYield = (days, weather, soilParams, forageData) => {
+    const { temperature, humidity, radiation } = weather;
+    const soilRetention = parseFloat(soilParams.waterRetention) || 0.2; // FAO-56
+    const growthRate = calculateGrowthRate(weather, soilParams);
+
+    const arableArea = parseFloat(forageData.arableArea) || 1; // in hectares
+
+    // Ensure weather parameters are arrays for daily values
+    const temperatures = Array.isArray(temperature) ? temperature : Array(days).fill(temperature);
+    const humidities = Array.isArray(humidity) ? humidity : Array(days).fill(humidity);
+    const radiations = Array.isArray(radiation) ? radiation : Array(days).fill(radiation);
+
+    return Array.from({ length: days }, (_, i) => {
+        const temp = temperatures[i];
+        const hum = humidities[i];
+        const rad = radiations[i];
+
+        // Calculate daily forage yield based on cumulative factors
+        const tempEffect = (temp > BASE_TEMP && temp < MAX_TEMP) ? TEMP_FACTOR * (temp - BASE_TEMP) : 0;
+        const humidityEffect = HUMIDITY_FACTOR * (100 - hum);
+        const radiationEffect = RADIATION_FACTOR * rad;
+
+        const dailyYield = arableArea * (tempEffect + humidityEffect + radiationEffect - soilRetention) * Math.pow(growthRate, i + 1);
+
+        return dailyYield; // in kilograms
+    });
+};
+
 export const calculateFeedNeeds = (days, herdProperties) => {
     const milkProductionPerCow = parseFloat(herdProperties.milkProduction) || 20;
     const herdSize = parseInt(herdProperties.herdSize) || 50;
@@ -23,20 +59,15 @@ export const calculateFeedNeeds = (days, herdProperties) => {
     const proteinPerCow = milkProductionPerCow * 0.15 * ageFactor * healthFactor * supplementFactor;
 
     return Array.from({ length: days }, () => ({
-        energy: (energyPerCow * herdSize).toFixed(2), // Kilograms
-        protein: (proteinPerCow * herdSize).toFixed(2), // Kilograms
+        energy: (energyPerCow * herdSize), // Kilograms
+        protein: (proteinPerCow * herdSize), // Kilograms
     }));
 };
-
-
-
-
 
 export const calculateGrowthRate = (weather, soilParams) => {
     const { temperature, radiation } = weather;
     const { waterRetention, nutrientContent } = soilParams;
 
-    // Example refined growth rate calculation
     let growthRate = 1.05; // Base growth rate
 
     // Adjust growth rate based on temperature
@@ -71,11 +102,68 @@ export const calculateGrowthRate = (weather, soilParams) => {
 };
 
 
+export const getRecommendation = (simulationResult) => {
+    const { 
+        meanForageSurplus, 
+        meanForageProduction, 
+        meanFeedNeeds, 
+        simulationRecords 
+    } = simulationResult;
+
+    let recommendation = '';
+
+    // Forage surplus or deficit
+    if (meanForageSurplus > 0) {
+        recommendation += `Surplus of ${meanForageSurplus.toFixed(2)} kg. `;
+        recommendation += 'Consider storing excess forage or optimizing nitrogen input. ';
+        if (meanForageProduction > meanFeedNeeds) {
+            recommendation += 'Evaluate increasing herd size or feed storage. ';
+        }
+    } else if (meanForageSurplus < 0) {
+        recommendation += `Deficit of ${Math.abs(meanForageSurplus).toFixed(2)} kg. `;
+        recommendation += 'Increase nitrogen, adjust crop rotation, or purchase additional feed. ';
+        if (meanFeedNeeds > meanForageProduction) {
+            recommendation += 'Review feeding strategy or consider alternative forage crops. ';
+        }
+    } else {
+        recommendation += 'Forage production matches herd needs. Continue current practices. ';
+    }
+
+    // Aggregate weather and soil recommendations from all records
+    let hasHighTemp = false, hasHighHumidity = false, hasLowRadiation = false;
+    let hasLowWaterRetention = false, hasLowNutrients = false;
+
+    simulationRecords.forEach(record => {
+        const { weather, soilParams } = record;
+        if (weather) {
+            if (weather.temperature > 30) hasHighTemp = true;
+            if (weather.humidity > 80) hasHighHumidity = true;
+            if (weather.radiation < 10) hasLowRadiation = true;
+        }
+        if (soilParams) {
+            if (soilParams.waterRetention < 0.2) hasLowWaterRetention = true;
+            if (soilParams.nutrientContent === 'Low') hasLowNutrients = true;
+        }
+    });
+
+    // Weather conditions
+    if (hasHighTemp) recommendation += 'Consider shade or irrigation for high temperatures. ';
+    if (hasHighHumidity) recommendation += 'Improve ventilation to reduce disease risk. ';
+    if (hasLowRadiation) recommendation += 'Adjust planting strategy for low radiation. ';
+
+    // Soil parameters
+    if (hasLowWaterRetention) recommendation += 'Improve soil moisture management. ';
+    if (hasLowNutrients) recommendation += 'Apply additional fertilizers. ';
+
+    return recommendation;
+};
+
 
 export const simulateResult = (simulationRecord = simulationRecordModel(), predictionPeriod = 1) => {
     const forageYield = calculateForageYield(predictionPeriod, simulationRecord.weather, simulationRecord.soilParams, simulationRecord.forageData);
     const feedNeeds = calculateFeedNeeds(predictionPeriod, simulationRecord.herdProperties);
 
+    
     const startDate = simulationRecord.date;
     const dates = Array.from({ length: predictionPeriod }, (_, i) => {
         const date = new Date(startDate);
@@ -89,28 +177,35 @@ export const simulateResult = (simulationRecord = simulationRecordModel(), predi
         const dailyFeedNeeds = parseFloat(feedNeeds[index]?.energy || 0);
 
         return {
-            dailyForageProduction: dailyForageProduction.toFixed(2),
-            dailyFeedNeeds: dailyFeedNeeds.toFixed(2),
-            dailyForageSurplus: (dailyForageProduction - dailyFeedNeeds).toFixed(2)
+            dailyForageProduction,
+            dailyFeedNeeds,
+            dailyForageSurplus: (dailyForageProduction - dailyFeedNeeds)
         };
     });
 
-
-
-    // Generate recommendations for each day
-    const recommendations = dailyTotals.map((day) => {
-        if (day.dailyForageSurplus > 0) {
-            return 'You have a surplus of forage. Consider storing excess forage or reducing nitrogen input.';
-        } else if (day.dailyForageSurplus < 0) {
-            return 'You have a deficit of forage. Consider increasing nitrogen input, adjusting crop rotation, or purchasing additional feed.';
-        } else {
-            return 'Your forage production matches your herd\'s needs. Maintain your current management practices.';
-        }
+    // Calculate means
+    let meanForageProduction = 0;
+    let meanFeedNeeds = 0;
+    let meanForageSurplus = 0;
+    dailyTotals.forEach((dailyValue) => {
+        meanForageProduction += dailyValue.dailyForageProduction;
+        meanFeedNeeds += dailyValue.dailyFeedNeeds;
+        meanForageSurplus += dailyValue.dailyForageSurplus;
     });
 
-    const simulationRecords = Array.from({ length: predictionPeriod }, (_, i) => simulationRecord);
+    meanForageProduction /= dailyTotals.length;
+    meanFeedNeeds /= dailyTotals.length;
+    meanForageSurplus /= dailyTotals.length;
 
-    return simulationResultModel(
+
+
+    const simulationRecords = Array.from({ length: predictionPeriod }, () => simulationRecord);
+
+
+
+
+
+    const simulateResult = simulationResultModel(
         simulationRecords,
         simulationRecord.group_id,
         dates,
@@ -119,8 +214,13 @@ export const simulateResult = (simulationRecord = simulationRecordModel(), predi
         dailyTotals.map(day => day.dailyForageProduction),
         dailyTotals.map(day => day.dailyFeedNeeds),
         dailyTotals.map(day => day.dailyForageSurplus),
-        recommendations
+        meanForageProduction,
+        meanFeedNeeds,
+        meanForageSurplus,
+        ""
     );
+
+    simulateResult.recommendation = getRecommendation(simulateResult)
+
+    return simulateResult
 };
-
-
