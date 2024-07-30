@@ -9,6 +9,7 @@ import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import FlutterDashIcon from '@mui/icons-material/FlutterDash';
 import { List, ListItem, ListItemText } from '@mui/material';
+import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 
 
 ChartJS.register(
@@ -238,7 +239,7 @@ export default function SimulationResults({ simulationRecords, small }) {
         return (
             <div className='icon-bg'>
                 <div className='icon-bg-content'>
-                    <FlutterDashIcon />
+                    <ManageHistoryIcon />
                     <div className='icon-bg-msg'>Please select or run a simulation to view the results</div>
                 </div>
             </div>

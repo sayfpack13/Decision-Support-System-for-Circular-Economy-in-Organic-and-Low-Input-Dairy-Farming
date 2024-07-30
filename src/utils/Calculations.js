@@ -128,18 +128,58 @@ export const calculateGrowthRate = (weather, soilParams) => {
     return growthRate;
 };
 
-// Recommendations should also consider additional parameters
+
+
 export const getRecommendation = (simulationResult) => {
     const {
+        simulationRecords,
         meanForageSurplus,
         meanForageProduction,
-        meanFeedNeeds,
-        simulationRecords
+        meanFeedNeeds
     } = simulationResult;
 
     let recommendation = '';
 
-    // Forage surplus or deficit
+    // Aggregate data from simulation records
+    const aggregatedData = {
+        highTemp: false,
+        highHumidity: false,
+        lowRadiation: false,
+        lowWaterRetention: false,
+        lowNutrients: false,
+        healthIssues: false,
+        proteinSupplement: false,
+        breedSpecific: {}
+    };
+
+    simulationRecords.forEach(record => {
+        const { weather, soilParams, herdProperties } = record;
+
+        if (weather) {
+            if (weather.temperature > 30) aggregatedData.highTemp = true;
+            if (weather.humidity > 80) aggregatedData.highHumidity = true;
+            if (weather.radiation < 10) aggregatedData.lowRadiation = true;
+        }
+
+        if (soilParams) {
+            if (soilParams.waterRetention < 0.2) aggregatedData.lowWaterRetention = true;
+            if (soilParams.nutrientContent === 'Low') aggregatedData.lowNutrients = true;
+        }
+
+        if (herdProperties) {
+            if (herdProperties.healthStatus === 'Sick') aggregatedData.healthIssues = true;
+            if (herdProperties.feedSupplement === 'Protein Supplement') aggregatedData.proteinSupplement = true;
+
+            if (!aggregatedData.breedSpecific[herdProperties.breed]) {
+                aggregatedData.breedSpecific[herdProperties.breed] = {
+                    count: 0
+                };
+            }
+            aggregatedData.breedSpecific[herdProperties.breed].count += 1;
+        }
+    });
+
+    // Provide recommendations based on aggregated data
     if (meanForageSurplus > 0) {
         recommendation += `Surplus of ${meanForageSurplus.toFixed(2)} kg. `;
         recommendation += 'Consider storing excess forage or optimizing nitrogen input. ';
@@ -156,43 +196,29 @@ export const getRecommendation = (simulationResult) => {
         recommendation += 'Forage production matches herd needs. Continue current practices. ';
     }
 
-    // Aggregate weather and soil recommendations from all records
-    let hasHighTemp = false, hasHighHumidity = false, hasLowRadiation = false;
-    let hasLowWaterRetention = false, hasLowNutrients = false;
-    let hasPeatSoil = false;
+    // Weather conditions
+    if (aggregatedData.highTemp) recommendation += 'Consider shade or irrigation for high temperatures. ';
+    if (aggregatedData.highHumidity) recommendation += 'Improve ventilation to reduce disease risk. ';
+    if (aggregatedData.lowRadiation) recommendation += 'Adjust planting strategy for low radiation. ';
 
-    simulationRecords.forEach(record => {
-        const { weather, soilParams, herdProperties } = record;
-        if (weather) {
-            if (weather.temperature > 30) hasHighTemp = true;
-            if (weather.humidity > 80) hasHighHumidity = true;
-            if (weather.radiation < 10) hasLowRadiation = true;
-        }
-        if (soilParams) {
-            if (soilParams.waterRetention < 0.2) hasLowWaterRetention = true;
-            if (soilParams.nutrientContent === 'Low') hasLowNutrients = true;
-            if (soilParams.soilType === 'Peat') hasPeatSoil = true;
-        }
-        if (herdProperties) {
-            if (herdProperties.healthStatus === 'Sick') recommendation += 'Address health issues immediately. ';
-            if (herdProperties.feedSupplement === 'Protein Supplement') recommendation += 'Ensure sufficient protein in the diet. ';
-            if (herdProperties.breed === 'Holstein') recommendation += 'Ensure high energy feed for Holsteins. ';
-            if (herdProperties.breed === 'Jersey') recommendation += 'Balance feed for Jersey’s high butterfat milk. ';
+    // Soil parameters
+    if (aggregatedData.lowWaterRetention) recommendation += 'Improve soil moisture management. ';
+    if (aggregatedData.lowNutrients) recommendation += 'Apply additional fertilizers. ';
+
+    // Herd management
+    if (aggregatedData.healthIssues) recommendation += 'Address health issues immediately. ';
+    if (aggregatedData.proteinSupplement) recommendation += 'Ensure sufficient protein in the diet. ';
+    Object.keys(aggregatedData.breedSpecific).forEach(breed => {
+        const count = aggregatedData.breedSpecific[breed].count;
+        if (count > 0) {
+            if (breed === 'Holstein') recommendation += 'Ensure high energy feed for Holsteins. ';
+            if (breed === 'Jersey') recommendation += 'Balance feed for Jersey’s high butterfat milk. ';
         }
     });
 
-    // Weather conditions
-    if (hasHighTemp) recommendation += 'Consider shade or irrigation for high temperatures. ';
-    if (hasHighHumidity) recommendation += 'Improve ventilation to reduce disease risk. ';
-    if (hasLowRadiation) recommendation += 'Adjust planting strategy for low radiation. ';
-
-    // Soil parameters
-    if (hasLowWaterRetention) recommendation += 'Improve soil moisture management. ';
-    if (hasLowNutrients) recommendation += 'Apply additional fertilizers. ';
-    if (hasPeatSoil) recommendation += 'Manage soil pH and nutrient levels for peat soil. ';
-
     return recommendation;
 };
+
 
 
 

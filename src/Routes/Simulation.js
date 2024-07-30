@@ -72,6 +72,7 @@ export default function Simulation() {
 
   useEffect(() => {
     if (coordinates.lat && coordinates.lon) {
+      setisLoading(true)
       fetchWeatherData(coordinates.lat, coordinates.lon);
     }
   }, [coordinates]);
