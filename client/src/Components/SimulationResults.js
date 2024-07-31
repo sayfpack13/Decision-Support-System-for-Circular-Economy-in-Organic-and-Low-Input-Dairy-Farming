@@ -2,14 +2,12 @@ import React, { useContext, useEffect, useState, useCallback, useMemo } from 're
 import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, TimeScale } from 'chart.js';
 import { Paper, Typography, Grid, Box, Select, MenuItem, FormControl, InputLabel, Card, CardHeader, CardContent, Divider, Icon } from '@mui/material';
-import { simulationResultModel } from '../utils/InputModels';
-import { getRecommendation, simulateResult } from '../../../server/utils/Calculations';
 import { LoaderContext } from './Loader';
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import FlutterDashIcon from '@mui/icons-material/FlutterDash';
 import { List, ListItem, ListItemText } from '@mui/material';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
+import axios from 'axios';
 
 
 ChartJS.register(
@@ -31,69 +29,26 @@ export default function SimulationResults({ simulationRecords, small }) {
     const [simulationResults, setSimulationResults] = useState([]);
     const { isLoading, setisLoading } = useContext(LoaderContext);
 
-    const handleSimulate = () => {
+    const handleSimulate = async () => {
         try {
-            const groupedSimulationRecords = {};
-            const groupIds = [];
+            setisLoading(true)
+            const response = await axios.post(process.env.REACT_APP_BACKEND_API + "/simulateRecords", {
+                simulationRecords,
+                predictionPeriod
+            })
 
-            simulationRecords.forEach(simulationRecord => {
-                if (!groupedSimulationRecords[simulationRecord.group_id]) {
-                    groupedSimulationRecords[simulationRecord.group_id] = [];
-                    groupIds.push(simulationRecord.group_id);
-                }
-                groupedSimulationRecords[simulationRecord.group_id].push(simulationRecord);
-            });
-
-            const newSimulationResults = [];
-            const newSimulationResultsDates = [];
-
-            groupIds.forEach(group_id => {
-                const groupedSimulationRecord = groupedSimulationRecords[group_id];
-                groupedSimulationRecord.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                // combining same group simulations
-                let combinedSimulationResult = simulationResultModel();
-                combinedSimulationResult.group_id = group_id;
-
-                groupedSimulationRecord.forEach((record, index) => {
-                    const isLast = index === groupedSimulationRecord.length - 1;
-                    const simulationResult = simulateResult(record, isLast ? predictionPeriod : 1);
-
-                    combinedSimulationResult.simulationRecords.push(...simulationResult.simulationRecords);
-                    combinedSimulationResult.dates.push(...simulationResult.dates);
-                    combinedSimulationResult.forageYield.push(...simulationResult.forageYield);
-                    combinedSimulationResult.feedNeeds.push(...simulationResult.feedNeeds);
-                    combinedSimulationResult.dailyForageProduction.push(...simulationResult.dailyForageProduction);
-                    combinedSimulationResult.dailyFeedNeeds.push(...simulationResult.dailyFeedNeeds);
-                    combinedSimulationResult.dailyForageSurplus.push(...simulationResult.dailyForageSurplus);
-                    combinedSimulationResult.meanForageProduction += simulationResult.meanForageProduction;
-                    combinedSimulationResult.meanFeedNeeds += simulationResult.meanFeedNeeds;
-                    combinedSimulationResult.meanForageSurplus += simulationResult.meanForageSurplus;
-                });
-
-                // overall data
-                combinedSimulationResult.meanForageProduction /= groupedSimulationRecord.length
-                combinedSimulationResult.meanFeedNeeds /= groupedSimulationRecord.length
-                combinedSimulationResult.meanForageSurplus /= groupedSimulationRecord.length
-                combinedSimulationResult.recommendation = getRecommendation(combinedSimulationResult)
-
-                newSimulationResults.push(combinedSimulationResult);
-                newSimulationResultsDates.push(combinedSimulationResult.dates);
-            });
-
-            setSimulationResults(newSimulationResults);
+            setSimulationResults(response.data.data)
+        } catch (error) {
+            alert(error.response.data.data)
         } finally {
-            setTimeout(() => {
-                setisLoading(false);
-            }, 300)
+            setisLoading(false)
         }
     }
 
 
     useEffect(() => {
         if (simulationRecords.length) {
-            setisLoading(true);
-            handleSimulate();
+            handleSimulate()
         } else {
             setSimulationResults([])
         }
@@ -346,10 +301,10 @@ export default function SimulationResults({ simulationRecords, small }) {
                                     <div key={index}>
                                         <ListItem className='recommendation-item'>
                                             <ListItemText
-                                                primary={<span style={{ color: `hsl(${index * 100}, 100%, 30%)` }}>{"● "+sim.group_id+":"}</span>}
+                                                primary={<span style={{ color: `hsl(${index * 100}, 100%, 30%)` }}>{"● " + sim.group_id + ":"}</span>}
                                                 secondary={sim.recommendation}
                                                 primaryTypographyProps={{ component: 'span', fontWeight: 'bold' }}
-                                                secondaryTypographyProps={{fontWeight:"bold"}}
+                                                secondaryTypographyProps={{ fontWeight: "bold" }}
                                             />
                                         </ListItem>
                                         {index < simulationResults.length - 1 && <Divider />}

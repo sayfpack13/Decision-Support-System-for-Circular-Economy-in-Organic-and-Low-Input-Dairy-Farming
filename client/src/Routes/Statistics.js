@@ -9,7 +9,7 @@ import { LoaderContext } from '../Components/Loader';
 import SimulationResults from '../Components/SimulationResults';
 import { Menu as MenuIcon, MenuOpen as MenuOpenIcon, Close as CloseIcon } from '@mui/icons-material';
 import SearchIcon from '@mui/icons-material/Search';
-import { simulationRecordModel } from '../utils/InputModels';
+import { simulationRecordModel } from '../shared/InputModels';
 
 
 export default function Statistics() {

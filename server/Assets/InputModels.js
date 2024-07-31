@@ -1,3 +1,10 @@
+const soilTypes = ['Sandy Loam', 'Clay Loam', 'Silt Loam', 'Peat'];
+const nutrientContents = ['Low', 'Medium', 'High'];
+const healthStatuses = ['Healthy', 'Sick', 'Recovering'];
+const feedSupplements = ['None', 'Grain', 'Protein Supplement', 'Vitamin Supplement'];
+const breeds = ['Holstein', 'Jersey', 'Guernsey', 'Ayrshire'];
+
+
 export const coordinatesModel = (
     lat = 40,
     lon = 40
@@ -28,8 +35,7 @@ export const weatherModel = (
 }
 
 
-const soilTypes = ['Sandy Loam', 'Clay Loam', 'Silt Loam', 'Peat'];
-const nutrientContents = ['Low', 'Medium', 'High'];
+
 
 export const soilModel = (
     soilType = soilTypes[0],
@@ -51,9 +57,6 @@ export const soilModel = (
 
 
 
-const healthStatuses = ['Healthy', 'Sick', 'Recovering'];
-const feedSupplements = ['None', 'Grain', 'Protein Supplement', 'Vitamin Supplement'];
-const breeds = ['Holstein', 'Jersey', 'Guernsey', 'Ayrshire'];
 
 export const herdModel = (
     breed = breeds[0],

@@ -5,10 +5,9 @@ import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import SimulationResults from '../Components/SimulationResults';
 import { LoaderContext } from '../Components/Loader';
-import { coordinatesModel, forageModel, herdModel, simulationRecordModel, soilModel, weatherModel } from '../utils/InputModels';
+import { coordinatesModel, forageModel, herdModel, simulationRecordModel, soilModel, weatherModel } from '../shared/InputModels';
 import mapMarker from "../Assets/marker.png"
 import L, { latLng, latLngBounds } from "leaflet"
-import { calculateSolarRadiationHargreaves } from '../../../server/utils/Calculations';
 import FlagIcon from '@mui/icons-material/Flag';
 import CloudIcon from '@mui/icons-material/Cloud';
 import PetsIcon from '@mui/icons-material/Pets';
@@ -110,7 +109,6 @@ export default function Simulation() {
           lon
         }
       })
-      console.log(response.data);
 
       setWeather(response.data.data)
       setisWeatherDataExist(true)
