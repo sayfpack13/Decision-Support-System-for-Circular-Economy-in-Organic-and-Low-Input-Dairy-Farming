@@ -111,6 +111,36 @@ export const forageModel = (
 
 
 
+export const WeatherForcastModel = (
+    timestamp = 0,
+    temperature = 20,
+    humidity = 20,
+    precipitation = 5,
+    radiation = 15,
+    description = "rain",
+) => {
+    return {
+        timestamp,
+        temperature,
+        humidity,
+        precipitation,
+        radiation,
+        description,
+    }
+}
+
+export const WeatherForcastListModel = (
+    weatherDataList = [WeatherForcastModel()],
+    country = "TN"
+) => {
+
+    return {
+        weatherDataList,
+        country
+    }
+}
+
+
 
 export const simulationRecordModel = (
     id = 0,
