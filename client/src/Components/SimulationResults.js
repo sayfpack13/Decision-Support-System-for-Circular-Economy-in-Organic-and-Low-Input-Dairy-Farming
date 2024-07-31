@@ -3,7 +3,7 @@ import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, TimeScale } from 'chart.js';
 import { Paper, Typography, Grid, Box, Select, MenuItem, FormControl, InputLabel, Card, CardHeader, CardContent, Divider, Icon } from '@mui/material';
 import { simulationResultModel } from '../utils/InputModels';
-import { getRecommendation, simulateResult } from '../utils/Calculations';
+import { getRecommendation, simulateResult } from '../../../server/utils/Calculations';
 import { LoaderContext } from './Loader';
 import 'chartjs-adapter-date-fns';
 import zoomPlugin from 'chartjs-plugin-zoom';

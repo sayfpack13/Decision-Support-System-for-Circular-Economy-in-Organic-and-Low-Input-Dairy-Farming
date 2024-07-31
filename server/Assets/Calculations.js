@@ -1,4 +1,4 @@
-import { simulationRecordModel, simulationResultModel } from "./InputModels";
+import { simulationRecordModel, simulationResultModel } from "../../shared/InputModels";
 
 // Constants for the Hargreaves-Samani Model
 const K = 0.0023; // Empirical constant for solar radiation

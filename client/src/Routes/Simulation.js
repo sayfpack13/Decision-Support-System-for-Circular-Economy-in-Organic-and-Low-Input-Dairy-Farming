@@ -8,7 +8,7 @@ import { LoaderContext } from '../Components/Loader';
 import { coordinatesModel, forageModel, herdModel, simulationRecordModel, soilModel, weatherModel } from '../utils/InputModels';
 import mapMarker from "../Assets/marker.png"
 import L, { latLng, latLngBounds } from "leaflet"
-import { calculateSolarRadiationHargreaves } from '../utils/Calculations';
+import { calculateSolarRadiationHargreaves } from '../../../server/utils/Calculations';
 import FlagIcon from '@mui/icons-material/Flag';
 import CloudIcon from '@mui/icons-material/Cloud';
 import PetsIcon from '@mui/icons-material/Pets';
@@ -102,26 +102,17 @@ export default function Simulation() {
 
 
   const fetchWeatherData = async (lat, lon) => {
-    const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
+
     try {
-      const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`);
-      const { main, weather, sys } = response.data;
-      const temperature = main.temp;
-      const humidity = main.humidity;
-      const description = weather[0].description
-      const precipitation = description.includes('rain') ? '5' : '0'; // Simplified assumption
-      const radiation = calculateSolarRadiationHargreaves(main.temp_min, main.temp_max, sys.sunrise, sys.sunset)
-      const country = sys.country
+      const response = await axios.get(process.env.REACT_APP_BACKEND_API + "/fetchWeatherData", {
+        params: {
+          lat,
+          lon
+        }
+      })
+      console.log(response.data);
 
-
-      setWeather({
-        temperature,
-        humidity,
-        precipitation,
-        radiation,
-        description,
-        country
-      });
+      setWeather(response.data.data)
       setisWeatherDataExist(true)
     } catch (error) {
       setisWeatherDataExist(false)
@@ -582,7 +573,7 @@ export default function Simulation() {
       </Paper>
       {isSimulated && <SimulationResults simulationRecords={simulationRecords} small={false} />}
       <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="success" variant='filled' style={{position:"fixed",top:"90%",left:"50%",transform:"translate(-50%, -50%)",fontSize:"25px",display:"flex",alignItems:"center"}}>
+        <Alert onClose={handleSnackbarClose} severity="success" variant='filled' style={{ position: "fixed", top: "90%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "25px", display: "flex", alignItems: "center" }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
