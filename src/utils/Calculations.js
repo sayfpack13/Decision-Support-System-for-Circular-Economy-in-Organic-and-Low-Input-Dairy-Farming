@@ -53,15 +53,15 @@ export const calculateForageYield = (days, weather, soilParams, forageData) => {
     });
 };
 
+
 export const calculateFeedNeeds = (days, herdProperties) => {
     const milkProductionPerCow = parseFloat(herdProperties.milkProduction) || 20;
     const herdSize = parseInt(herdProperties.herdSize) || 50;
-    const weight = parseFloat(herdProperties.weight) || 650;
+    const weight = parseFloat(herdProperties.weight) || 450;
     const fatContent = parseFloat(herdProperties.fatContent) || 3.8;
     const proteinContent = parseFloat(herdProperties.proteinContent) || 3.2;
     const ageFactor = herdProperties.age > 5 ? 0.9 : 1;
 
-    // Adjust factor based on breed
     const breedFactor = {
         'Holstein': 1.2,
         'Jersey': 1.1,
@@ -69,14 +69,14 @@ export const calculateFeedNeeds = (days, herdProperties) => {
         'Ayrshire': 1
     }[herdProperties.breed] || 1;
 
-    // Adjust health and supplement factors
     const healthFactor = herdProperties.healthStatus === 'Sick' ? 1.3 :
         herdProperties.healthStatus === 'Recovering' ? 1.1 : 1;
     const supplementFactor = herdProperties.feedSupplement === 'Protein Supplement' ? 1.2 :
         herdProperties.feedSupplement === 'Vitamin Supplement' ? 1.05 : 1;
 
-    const energyPerCow = milkProductionPerCow * 0.3 * ageFactor * healthFactor * supplementFactor * breedFactor;
-    const proteinPerCow = milkProductionPerCow * 0.15 * ageFactor * healthFactor * supplementFactor * breedFactor;
+    // Incorporate weight, fatContent, and proteinContent into energy and protein needs
+    const energyPerCow = (milkProductionPerCow * 0.3 * (weight / 450) * fatContent / 3.8 * ageFactor * healthFactor * supplementFactor * breedFactor);
+    const proteinPerCow = (milkProductionPerCow * 0.15 * weight / 450 * proteinContent / 3.2 * ageFactor * healthFactor * supplementFactor * breedFactor);
 
     return Array.from({ length: days }, () => ({
         energy: (energyPerCow * herdSize), // Kilograms
