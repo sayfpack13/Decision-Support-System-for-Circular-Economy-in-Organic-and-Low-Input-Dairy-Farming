@@ -69,8 +69,8 @@ export default function SimulationResults({ simulationRecords, small }) {
         }));
     };
 
-    const processedDataForage = useMemo(() => processData(simulationResults, 'forageYield'), [simulationResults]);
-    const processedDataFeedNeeds = useMemo(() => processData(simulationResults, 'feedNeeds'), [simulationResults]);
+    const processedDataForage = useMemo(() => processData(simulationResults, 'dailyForageProduction'), [simulationResults]);
+    const processedDataFeedNeeds = useMemo(() => processData(simulationResults, 'dailyFeedNeeds'), [simulationResults]);
     const processedDataComparison = useMemo(() => [
         ...processData(simulationResults, 'dailyForageProduction'),
         ...processData(simulationResults, 'dailyFeedNeeds')

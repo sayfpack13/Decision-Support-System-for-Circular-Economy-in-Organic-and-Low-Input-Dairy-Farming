@@ -34,10 +34,12 @@ export const fetchWeatherData = async (lat, lon) => {
 };
 
 
+// https://open-meteo.com/en/docs/historical-weather-api#hourly=relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,daylight_duration,precipitation_sum
+// todo gather weather starting from first simulation record of all selected sims
 
-// Call 5 day / 3 hour forecast data
+
+// forcast every 3 hour weather data for 5 days starting from request creation time
 export const fetchForcastWeatherData = async (lat, lon) => {
-    const apiKey = process.env.OPENWEATHER_API_KEY;
 
     const response = await axios.get(`api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${openWeatherAPIKey}&units=metric`);
     const { list, city } = response.data
@@ -87,7 +89,7 @@ export const simulateRecords = (simulationRecords = [], predictionPeriod = 1) =>
         groupedSimulationRecord.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         // combining same group simulations
-        let combinedSimulationResult = simulationResultModel();
+        let combinedSimulationResult = simulationResultModel([]);
         combinedSimulationResult.group_id = group_id;
 
         groupedSimulationRecord.forEach((record, index) => {
@@ -96,8 +98,6 @@ export const simulateRecords = (simulationRecords = [], predictionPeriod = 1) =>
 
             combinedSimulationResult.simulationRecords.push(...simulationResult.simulationRecords);
             combinedSimulationResult.dates.push(...simulationResult.dates);
-            combinedSimulationResult.forageYield.push(...simulationResult.forageYield);
-            combinedSimulationResult.feedNeeds.push(...simulationResult.feedNeeds);
             combinedSimulationResult.dailyForageProduction.push(...simulationResult.dailyForageProduction);
             combinedSimulationResult.dailyFeedNeeds.push(...simulationResult.dailyFeedNeeds);
             combinedSimulationResult.dailyForageSurplus.push(...simulationResult.dailyForageSurplus);
@@ -105,6 +105,7 @@ export const simulateRecords = (simulationRecords = [], predictionPeriod = 1) =>
             combinedSimulationResult.meanFeedNeeds += simulationResult.meanFeedNeeds;
             combinedSimulationResult.meanForageSurplus += simulationResult.meanForageSurplus;
         });
+
 
         // overall data
         combinedSimulationResult.meanForageProduction /= groupedSimulationRecord.length

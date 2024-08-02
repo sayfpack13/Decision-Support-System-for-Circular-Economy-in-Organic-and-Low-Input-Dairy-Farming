@@ -149,6 +149,7 @@ export default function Simulation() {
     tmp_simulationRecord.group_id = selectedSimulationGroup == "create-new" ? simulationGroup : selectedSimulationGroup
 
     const simulations = JSON.parse(localStorage.getItem('simulations')) || [];
+    tmp_simulationRecord.id=simulations.length
     localStorage.setItem('simulations', JSON.stringify([...simulations, tmp_simulationRecord]));
 
 

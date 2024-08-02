@@ -223,8 +223,8 @@ export const getRecommendation = (simulationResult) => {
 
 
 export const simulateResult = (simulationRecord = simulationRecordModel(), predictionPeriod = 1) => {
-    const forageYield = calculateForageYield(predictionPeriod, simulationRecord.weather, simulationRecord.soilParams, simulationRecord.forageData);
-    const feedNeeds = calculateFeedNeeds(predictionPeriod, simulationRecord.herdProperties);
+    const tmp_dailyForageProduction = calculateForageYield(predictionPeriod, simulationRecord.weather, simulationRecord.soilParams, simulationRecord.forageData);
+    const tmp_dailyFeedNeeds = calculateFeedNeeds(predictionPeriod, simulationRecord.herdProperties);
 
 
     const startDate = simulationRecord.date;
@@ -235,9 +235,9 @@ export const simulateResult = (simulationRecord = simulationRecordModel(), predi
     });
 
     // Calculate daily totals and surplus
-    const dailyTotals = forageYield.map((yieldValue, index) => {
+    const dailyTotals = tmp_dailyForageProduction.map((yieldValue, index) => {
         const dailyForageProduction = parseFloat(yieldValue);
-        const dailyFeedNeeds = parseFloat(feedNeeds[index]?.energy || 0);
+        const dailyFeedNeeds = parseFloat(tmp_dailyFeedNeeds[index]?.energy || 0);
 
         return {
             dailyForageProduction,
@@ -272,8 +272,6 @@ export const simulateResult = (simulationRecord = simulationRecordModel(), predi
         simulationRecords,
         simulationRecord.group_id,
         dates,
-        forageYield,
-        feedNeeds.map(need => need.energy),
         dailyTotals.map(day => day.dailyForageProduction),
         dailyTotals.map(day => day.dailyFeedNeeds),
         dailyTotals.map(day => day.dailyForageSurplus),

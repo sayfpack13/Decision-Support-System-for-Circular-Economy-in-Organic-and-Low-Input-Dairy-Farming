@@ -169,11 +169,9 @@ export const simulationRecordModel = (
 
 
 export const simulationResultModel = (
-    simulationRecords=[],
+    simulationRecords=[simulationRecordModel()],
     group_id="farm 1",
     dates = [],
-    forageYield = [],
-    feedNeeds = [],
     dailyForageProduction = [],
     dailyFeedNeeds = [],
     dailyForageSurplus = [],
@@ -186,8 +184,6 @@ export const simulationResultModel = (
         simulationRecords,
         group_id,
         dates,
-        forageYield,
-        feedNeeds,
         dailyForageProduction,
         dailyFeedNeeds,
         dailyForageSurplus,
